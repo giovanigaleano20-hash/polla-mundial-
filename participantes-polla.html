@@ -209,7 +209,6 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#2a2a3a;let
         <li>Los pronósticos se entregan <strong style="color:#ccc">antes del partido inaugural</strong>. No se aceptan cambios.</li>
         <li>Por cada partido: <strong style="color:#F59E0B">+1 pt</strong> si acertás el ganador · <strong style="color:#4ade80">+3 pts</strong> si acertás ganador y resultado exacto.</li>
         <li>En caso de empate en puntos, gana quien haya acertado el resultado exacto de más partidos.</li>
-        <li>El premio de <strong style="color:#ccc">Goleador</strong> va a quien predijo al máximo anotador del torneo.</li>
         <li>El organizador retiene el <strong style="color:#ccc">25%</strong> por administración.</li>
         <li>Los premios se pagan <strong style="color:#ccc">dentro de los 5 días</strong> tras la final del torneo.</li>
       </ul>
@@ -239,8 +238,7 @@ const firebaseConfig = {
 const PRIZES = [
   {label:"🥇 1er Lugar",pct:50},
   {label:"🥈 2do Lugar",pct:30},
-  {label:"🥉 3er Lugar",pct:10},
-  {label:"⚽ Goleador del Torneo",pct:10},
+  {label:"🥉 3er Lugar",pct:20},
 ];
 
 const app = initializeApp(firebaseConfig);
