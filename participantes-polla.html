@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Polla Mundialista 2026 · En Vivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#070710;font-family:'Barlow',sans-serif;color:#f0f0f0;min-height:100vh;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;animation:drift 12s ease-in-out infinite alternate}
+.bg-orb.o1{width:500px;height:500px;background:#F59E0B;top:-100px;left:-100px;animation-delay:0s}
+.bg-orb.o2{width:400px;height:400px;background:#22c55e;bottom:-80px;right:-80px;animation-delay:3s}
+.bg-orb.o3{width:300px;height:300px;background:#3b82f6;top:40%;left:50%;animation-delay:6s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(40px,30px) scale(1.1)}}
+.ro-banner{position:fixed;top:0;left:0;right:0;z-index:200;
+  background:linear-gradient(90deg,#052e16,#14532d,#052e16);
+  border-bottom:1px solid rgba(74,222,128,.3);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:7px 16px;font-size:12px;letter-spacing:1px;color:#4ade80;font-weight:700;text-transform:uppercase}
+.ro-dot{width:8px;height:8px;background:#4ade80;border-radius:50%;box-shadow:0 0 8px #4ade80;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
+header{position:relative;z-index:1;text-align:center;padding:64px 20px 24px;
+  border-bottom:1px solid rgba(245,158,11,.15);background:rgba(0,0,0,.5);backdrop-filter:blur(16px)}
+.badge{display:inline-block;background:linear-gradient(135deg,#F59E0B,#fbbf24);color:#0a0a0f;
+  font-family:'Bebas Neue',cursive;letter-spacing:4px;font-size:11px;padding:3px 16px;border-radius:20px;margin-bottom:12px}
+h1{font-family:'Bebas Neue',cursive;font-size:clamp(30px,6vw,58px);letter-spacing:6px;
+  background:linear-gradient(135deg,#F59E0B,#fde68a,#F59E0B);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;line-height:1;margin-bottom:4px}
+.subtitle{font-size:12px;color:#555;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px}
+.live-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(239,68,68,.1);
+  border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:20px;padding:4px 14px;
+  font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px}
+.live-dot{width:7px;height:7px;background:#ef4444;border-radius:50%;box-shadow:0 0 8px #ef4444;animation:pulse 1s ease-in-out infinite}
+.stats-row{display:flex;justify-content:center;gap:clamp(10px,3vw,28px);flex-wrap:wrap}
+.stat-box{text-align:center}
+.stat-val{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:1px}
+.stat-lbl{font-size:10px;color:#444;text-transform:uppercase;letter-spacing:1px}
+.accent{color:#F59E0B}.green{color:#4ade80}
+nav{display:flex;justify-content:center;gap:8px;padding:14px 16px;flex-wrap:wrap;
+  border-bottom:1px solid rgba(255,255,255,.05);position:sticky;top:30px;z-index:100;
+  background:rgba(7,7,16,.88);backdrop-filter:blur(12px)}
+.tab-btn{display:flex;align-items:center;gap:6px;padding:8px 18px;
+  border:1px solid rgba(255,255,255,.1);border-radius:30px;background:transparent;
+  color:#555;cursor:pointer;font-size:13px;font-family:'Barlow',sans-serif;font-weight:600;
+  letter-spacing:.5px;transition:all .2s}
+.tab-btn.active{background:#F59E0B;color:#0a0a0f;border-color:#F59E0B;box-shadow:0 0 16px #F59E0B44}
+main{max-width:820px;margin:0 auto;padding:28px 16px 80px;position:relative;z-index:1}
+.section{display:none}.section.show{display:block}
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;gap:16px;padding:60px 20px;text-align:center}
+.spinner{width:40px;height:40px;border:3px solid rgba(245,158,11,.2);border-top-color:#F59E0B;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* PODIO */
+.podio{display:flex;align-items:flex-end;justify-content:center;gap:12px;margin-bottom:28px;padding:0 8px}
+.podio-slot{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;max-width:200px}
+.podio-avatar{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:900;font-family:'Bebas Neue',cursive;position:relative}
+.pa1{background:linear-gradient(135deg,#FFD700,#FFA500);box-shadow:0 0 24px #FFD70055;width:66px;height:66px;font-size:24px;color:#7c2d00}
+.pa2{background:linear-gradient(135deg,#A8A8A8,#E0E0E0);box-shadow:0 0 14px #C0C0C033;color:#1a1a1a}
+.pa3{background:linear-gradient(135deg,#8B5E3C,#CD7F32);box-shadow:0 0 14px #CD7F3233;color:#fff}
+.podio-name{font-size:13px;font-weight:700;text-align:center;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.podio-pts{font-family:'Bebas Neue',cursive;font-size:20px;color:#F59E0B}
+.podio-bar{width:100%;border-radius:6px 6px 0 0}
+.pb1{background:linear-gradient(180deg,#FFD700,#b45309);height:80px}
+.pb2{background:linear-gradient(180deg,#C0C0C0,#6b7280);height:55px}
+.pb3{background:linear-gradient(180deg,#CD7F32,#78350f);height:35px}
+.podio-rank-lbl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px}
+/* SEARCH */
+.search-box{width:100%;padding:10px 16px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);border-radius:8px;color:#f0f0f0;font-size:14px;
+  margin-bottom:14px;font-family:'Barlow',sans-serif;outline:none}
+/* TABLE */
+.table-wrap{border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+.t-head{display:flex;align-items:center;padding:10px 16px;background:rgba(245,158,11,.08);
+  font-size:11px;font-weight:700;letter-spacing:1px;color:#F59E0B;text-transform:uppercase;gap:8px}
+.t-row{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.04);gap:8px;transition:background .15s}
+.t-row:hover{background:rgba(255,255,255,.04)}
+.status-pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.5px}
+.sp-paid{background:rgba(22,163,74,.2);color:#4ade80;border:1px solid rgba(74,222,128,.3)}
+.sp-pend{background:rgba(55,65,81,.4);color:#6b7280;border:1px solid rgba(107,114,128,.2)}
+/* PRIZES */
+.prize-card{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;
+  margin-bottom:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;transition:border-color .2s}
+.prize-card:hover{border-color:rgba(245,158,11,.3)}
+.prize-amt{font-family:'Bebas Neue',cursive;font-size:24px;color:#F59E0B;letter-spacing:1px}
+.prize-total-row{display:flex;justify-content:space-between;padding:16px 20px;
+  background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:10px;
+  font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:2px;margin-top:8px}
+/* SCORING */
+.section-title{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:3px;color:#F59E0B;margin-bottom:14px;margin-top:24px}
+.score-row{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.04)}
+.score-icon{font-size:20px;width:30px;text-align:center}
+.score-pts{font-family:'Bebas Neue',cursive;font-size:20px;color:#F59E0B;width:70px;text-align:right}
+.rules-box{margin-top:20px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:20px}
+.rules-list{padding-left:18px;display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.7;color:#999}
+/* BOTTOM BAR */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(7,7,16,.95);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:space-between;padding:10px 20px;flex-wrap:wrap;gap:8px}
+.last-update{font-size:11px;color:#333;letter-spacing:.5px}
+.view-only{font-size:11px;color:#2a2a3a;font-style:italic}
+footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#2a2a3a;letter-spacing:2px;text-transform:uppercase;position:relative;z-index:1}
+</style>
+</head>
+<body>
+<div class="bg"><div class="bg-orb o1"></div><div class="bg-orb o2"></div><div class="bg-orb o3"></div></div>
+
+<div class="ro-banner"><div class="ro-dot"></div>Vista participantes · Solo lectura · Tiempo real</div>
+
+<header>
+  <div class="badge">MUNDIAL 2026</div>
+  <h1>POLLA MUNDIALISTA</h1>
+  <p class="subtitle">Seguimiento en tiempo real</p>
+  <div class="live-badge"><div class="live-dot"></div> En Vivo</div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val" id="st-cupos">—</div><div class="stat-lbl">Cupos</div></div>
+    <div class="stat-box"><div class="stat-val accent" id="st-recaudado">—</div><div class="stat-lbl">Recaudado</div></div>
+    <div class="stat-box"><div class="stat-val green" id="st-premios">—</div><div class="stat-lbl">En premios</div></div>
+    <div class="stat-box"><div class="stat-val" id="st-lider">—</div><div class="stat-lbl">Líder</div></div>
+  </div>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('tabla',this)">🏆 Tabla</button>
+  <button class="tab-btn" onclick="showTab('podio',this)">🎖️ Podio</button>
+  <button class="tab-btn" onclick="showTab('premios',this)">💰 Premios</button>
+  <button class="tab-btn" onclick="showTab('reglas',this)">📋 Reglas</button>
+</nav>
+
+<main>
+  <!-- TABLA -->
+  <div id="sec-tabla" class="section show">
+    <input class="search-box" id="search-input" placeholder="🔍  Buscar tu nombre..." oninput="renderTabla()"/>
+    <div class="table-wrap">
+      <div class="t-head">
+        <span style="width:44px">#</span>
+        <span style="flex:1">Participante</span>
+        <span style="width:70px;text-align:center">Pts</span>
+        <span style="width:80px;text-align:center">Estado</span>
+      </div>
+      <div id="tabla-body">
+        <div class="loading"><div class="spinner"></div><span style="color:#555;font-size:13px">Conectando...</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PODIO -->
+  <div id="sec-podio" class="section">
+    <div id="podio-wrap"></div>
+    <div id="top10-wrap"></div>
+  </div>
+
+  <!-- PREMIOS -->
+  <div id="sec-premios" class="section">
+    <p style="text-align:center;font-size:13px;color:#555;margin-bottom:20px;line-height:1.8">
+      Premio total basado en participantes confirmados<br>
+      <strong style="color:#F59E0B" id="premio-lbl">—</strong> en juego actualmente
+    </p>
+    <div id="prizes-list"></div>
+    <div class="prize-total-row"><span>TOTAL EN PREMIOS</span><span style="color:#F59E0B" id="prize-total">—</span></div>
+    <p style="font-size:11px;color:#333;text-align:center;margin-top:10px">Los montos se actualizan conforme se confirman pagos</p>
+  </div>
+
+  <!-- REGLAS -->
+  <div id="sec-reglas" class="section">
+    <div class="section-title">Sistema de Puntuación</div>
+    <div class="table-wrap">
+      <div class="score-row"><span class="score-icon">🏆</span><span style="flex:1;color:#ddd;font-size:14px">Campeón del Mundial</span><span class="score-pts">+40 pts</span></div>
+      <div class="score-row"><span class="score-icon">🥈</span><span style="flex:1;color:#ddd;font-size:14px">Subcampeón</span><span class="score-pts">+20 pts</span></div>
+      <div class="score-row"><span class="score-icon">🎯</span><span style="flex:1;color:#ddd;font-size:14px">3er y 4to lugar exacto</span><span class="score-pts">+15 pts</span></div>
+      <div class="score-row"><span class="score-icon">🏟️</span><span style="flex:1;color:#ddd;font-size:14px">Clasificado a Final</span><span class="score-pts">+10 pts</span></div>
+      <div class="score-row"><span class="score-icon">4️⃣</span><span style="flex:1;color:#ddd;font-size:14px">Clasificado Semifinal</span><span class="score-pts">+6 pts</span></div>
+      <div class="score-row"><span class="score-icon">8️⃣</span><span style="flex:1;color:#ddd;font-size:14px">Clasificado Cuartos</span><span class="score-pts">+4 pts</span></div>
+      <div class="score-row"><span class="score-icon">🔟</span><span style="flex:1;color:#ddd;font-size:14px">Clasificado Octavos</span><span class="score-pts">+2 pts</span></div>
+      <div class="score-row"><span class="score-icon">📋</span><span style="flex:1;color:#ddd;font-size:14px">Clasificado Grupos</span><span class="score-pts">+1 pt</span></div>
+      <div class="score-row"><span class="score-icon">✅</span><span style="flex:1;color:#ddd;font-size:14px">Predice el ganador del partido</span><span class="score-pts">+1 pt</span></div>
+      <div class="score-row"><span class="score-icon">🎯</span><span style="flex:1;color:#ddd;font-size:14px">Predice ganador <strong style="color:#4ade80">+</strong> resultado exacto</span><span class="score-pts">+3 pts</span></div>
+      <div class="score-row"><span class="score-icon">⚽</span><span style="flex:1;color:#ddd;font-size:14px">Goleador del torneo</span><span class="score-pts">+15 pts</span></div>
+    </div>
+    <div class="rules-box" style="margin-top:16px;border-color:rgba(245,158,11,.2)">
+      <div class="section-title" style="margin-top:0">⚽ Puntuación por Partido</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+        <div style="flex:1;min-width:180px;background:rgba(255,255,255,.03);border-radius:10px;padding:14px;border:1px solid rgba(255,255,255,.07)">
+          <div style="font-family:'Bebas Neue',cursive;font-size:38px;color:#F59E0B;line-height:1">1 pt</div>
+          <div style="font-weight:700;margin-bottom:4px">Acertás el ganador</div>
+          <div style="font-size:12px;color:#555;margin-bottom:8px">Predijiste qué equipo gana, pero no el marcador exacto.</div>
+          <div style="font-size:11px;color:#888;background:rgba(0,0,0,.3);padding:7px 9px;border-radius:6px">
+            Ej: predices <strong>Colombia gana</strong> → Colombia 2-1 Brasil ✅ → <strong style="color:#F59E0B">+1 pt</strong>
+          </div>
+        </div>
+        <div style="flex:1;min-width:180px;background:rgba(74,222,128,.04);border-radius:10px;padding:14px;border:1px solid rgba(74,222,128,.2)">
+          <div style="font-family:'Bebas Neue',cursive;font-size:38px;color:#4ade80;line-height:1">3 pts</div>
+          <div style="font-weight:700;margin-bottom:4px">Ganador + resultado exacto</div>
+          <div style="font-size:12px;color:#555;margin-bottom:8px">Predijiste el equipo ganador Y el marcador exacto.</div>
+          <div style="font-size:11px;color:#888;background:rgba(0,0,0,.3);padding:7px 9px;border-radius:6px">
+            Ej: predices <strong>Colombia 2-1</strong> → Colombia 2-1 Brasil ✅ → <strong style="color:#4ade80">+3 pts</strong>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#444;text-align:center">⚠️ Los 3 pts reemplazan al +1, no se suman. Máximo 3 pts por partido.</p>
+    </div>
+    <div class="rules-box">
+      <div class="section-title">📜 Reglas Generales</div>
+      <ul class="rules-list">
+        <li>Cada participante paga <strong style="color:#ccc">$200.000 COP</strong> antes del inicio del torneo.</li>
+        <li>Los pronósticos se entregan <strong style="color:#ccc">antes del partido inaugural</strong>. No se aceptan cambios.</li>
+        <li>Por cada partido: <strong style="color:#F59E0B">+1 pt</strong> si acertás el ganador · <strong style="color:#4ade80">+3 pts</strong> si acertás ganador y resultado exacto.</li>
+        <li>En caso de empate en puntos, gana quien haya acertado el resultado exacto de más partidos.</li>
+        <li>El premio de <strong style="color:#ccc">Goleador</strong> va a quien predijo al máximo anotador del torneo.</li>
+        <li>El organizador retiene el <strong style="color:#ccc">25%</strong> por administración.</li>
+        <li>Los premios se pagan <strong style="color:#ccc">dentro de los 5 días</strong> tras la final del torneo.</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<div class="bottom-bar">
+  <span class="last-update" id="last-update">Conectando a tiempo real...</span>
+  <span class="view-only">👁️ Solo lectura</span>
+</div>
+<footer>Polla Mundialista 2026 · Vista Participantes · Tiempo Real</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAPq-PtYroZ5ZRHpJajZLj2ixD0b_IPh3Q",
+  authDomain: "polla-mundial-2026-511f5.firebaseapp.com",
+  projectId: "polla-mundial-2026-511f5",
+  storageBucket: "polla-mundial-2026-511f5.firebasestorage.app",
+  messagingSenderId: "1034229726024",
+  appId: "1:1034229726024:web:d4ceb93a761fe6bfdc917d"
+};
+
+const PRIZES = [
+  {label:"🥇 1er Lugar",pct:50},
+  {label:"🥈 2do Lugar",pct:30},
+  {label:"🥉 3er Lugar",pct:10},
+  {label:"⚽ Goleador del Torneo",pct:10},
+];
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const fmt = n => '$'+Math.round(n).toLocaleString('es-CO');
+const escHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const initials = p => p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+let players = [];
+
+// ── REAL-TIME LISTENER ──
+onSnapshot(doc(db,'polla','participantes'), snap => {
+  if(snap.exists()){
+    players = snap.data().players || [];
+    renderAll();
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      '🔴 Última actualización: '+now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  } else {
+    document.getElementById('tabla-body').innerHTML =
+      '<div style="text-align:center;padding:40px;color:#444;font-size:13px">El administrador aún no ha cargado datos.</div>';
+  }
+}, err => {
+  document.getElementById('last-update').textContent = '❌ Sin conexión';
+  document.getElementById('tabla-body').innerHTML =
+    '<div style="text-align:center;padding:40px;color:#f87171;font-size:13px">Error de conexión. Recarga la página.</div>';
+});
+
+function renderAll(){
+  updateHeader();
+  renderTabla();
+  if(document.getElementById('sec-podio').classList.contains('show')) renderPodio();
+  if(document.getElementById('sec-premios').classList.contains('show')) renderPremios();
+}
+
+function updateHeader(){
+  const paid = players.filter(p=>p.paid).length;
+  const rec = paid*200000;
+  const sorted = [...players].sort((a,b)=>b.pts-a.pts);
+  document.getElementById('st-cupos').textContent = paid+'/30';
+  document.getElementById('st-recaudado').textContent = fmt(rec);
+  document.getElementById('st-premios').textContent = fmt(rec*.75);
+  const lider = sorted[0];
+  document.getElementById('st-lider').textContent = lider&&lider.pts>0 ? lider.name.split(' ').slice(0,2).join(' ') : '—';
+}
+
+function renderTabla(){
+  const q = (document.getElementById('search-input').value||'').toLowerCase();
+  const sorted = [...players].sort((a,b)=>b.pts-a.pts);
+  const filtered = sorted.filter(p=>p.name.toLowerCase().includes(q));
+  const body = document.getElementById('tabla-body');
+  body.innerHTML='';
+  filtered.forEach(p=>{
+    const rank = sorted.indexOf(p)+1;
+    let rankIcon = rank<=3?['🥇','🥈','🥉'][rank-1]:rank;
+    let bc='transparent',bg='rgba(255,255,255,.02)',glow='none',rc='#333';
+    if(rank===1){bc='#FFD700';bg='rgba(255,215,0,.06)';glow='0 0 16px #FFD70022';rc='#FFD700'}
+    if(rank===2){bc='#C0C0C0';bg='rgba(192,192,192,.04)';rc='#C0C0C0'}
+    if(rank===3){bc='#CD7F32';bg='rgba(205,127,50,.05)';rc='#CD7F32'}
+    const row = document.createElement('div');
+    row.className='t-row';
+    row.style.cssText=`box-shadow:${glow};border-left:4px solid ${bc};background:${bg}`;
+    row.innerHTML=`
+      <span style="width:44px;font-family:'Bebas Neue',cursive;font-size:20px;color:${rc}">${rankIcon}</span>
+      <span style="flex:1;font-weight:${rank<=3?700:400};color:#f0f0f0">${escHtml(p.name)}</span>
+      <span style="width:70px;text-align:center;font-family:'Bebas Neue',cursive;font-size:22px;color:#F59E0B">${p.pts}</span>
+      <span style="width:80px;text-align:center"><span class="status-pill ${p.paid?'sp-paid':'sp-pend'}">${p.paid?'✓ Pagó':'Pend.'}</span></span>`;
+    body.appendChild(row);
+  });
+}
+
+function renderPodio(){
+  const sorted = [...players].sort((a,b)=>b.pts-a.pts);
+  const t = sorted.slice(0,3);
+  const podioOrder = [
+    {p:t[1],ac:'pa2',bc:'pb2',pos:'2do'},
+    {p:t[0],ac:'pa1',bc:'pb1',pos:'1ro'},
+    {p:t[2],ac:'pa3',bc:'pb3',pos:'3ro'},
+  ];
+  document.getElementById('podio-wrap').innerHTML=`
+    <div class="section-title" style="text-align:center">🎖️ Podio Actual</div>
+    <div class="podio">
+      ${podioOrder.map(({p,ac,bc,pos})=>p?`
+        <div class="podio-slot">
+          <div class="podio-avatar ${ac}">${initials(p)}</div>
+          <div class="podio-name">${escHtml(p.name)}</div>
+          <div class="podio-pts">${p.pts} pts</div>
+          <div class="podio-bar ${bc}"></div>
+          <div class="podio-rank-lbl">${pos} lugar</div>
+        </div>`:'<div class="podio-slot"><div style="color:#222;font-size:12px;padding:20px 0">—</div></div>'
+      ).join('')}
+    </div>`;
+  const rest = sorted.slice(3,10);
+  if(!rest.length){document.getElementById('top10-wrap').innerHTML='';return;}
+  document.getElementById('top10-wrap').innerHTML=`
+    <div class="section-title">Top 4 – ${Math.min(10,sorted.length)}</div>
+    <div class="table-wrap">
+      ${rest.map((p,i)=>`
+        <div class="t-row" style="border-left:4px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02)">
+          <span style="width:44px;font-family:'Bebas Neue',cursive;font-size:20px;color:#444">${i+4}</span>
+          <span style="flex:1;color:#bbb">${escHtml(p.name)}</span>
+          <span style="width:70px;text-align:center;font-family:'Bebas Neue',cursive;font-size:22px;color:#F59E0B">${p.pts}</span>
+          <span style="width:80px;text-align:center"><span class="status-pill ${p.paid?'sp-paid':'sp-pend'}">${p.paid?'✓':'Pend.'}</span></span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderPremios(){
+  const paid = players.filter(p=>p.paid).length;
+  const premioTotal = paid*200000*.75;
+  document.getElementById('premio-lbl').textContent = fmt(premioTotal);
+  document.getElementById('prize-total').textContent = fmt(premioTotal);
+  const list = document.getElementById('prizes-list');
+  list.innerHTML='';
+  PRIZES.forEach(pr=>{
+    const card = document.createElement('div');
+    card.className='prize-card';
+    card.innerHTML=`
+      <div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:2px">${pr.label}</div>
+        <div style="font-size:12px;color:#555">${pr.pct}% del total en premios</div>
+      </div>
+      <div class="prize-amt">${fmt(premioTotal*pr.pct/100)}</div>`;
+    list.appendChild(card);
+  });
+}
+
+window.showTab = (id, btn) => {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('show'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('show');
+  btn.classList.add('active');
+  if(id==='podio') renderPodio();
+  if(id==='premios') renderPremios();
+};
+</script>
+</body>
+</html>
