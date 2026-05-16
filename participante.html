@@ -144,6 +144,58 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
 .score-dash{color:#666;font-weight:700;font-size:14px}
 
 /* SAVE BAR */
+/* ── KNOCKOUT PHASES ── */
+.ko-phase{margin-bottom:30px}
+.ko-phase-header{display:flex;align-items:center;gap:10px;margin:18px 0 12px;
+  padding:10px 16px;background:linear-gradient(90deg,rgba(245,158,11,.15),transparent);
+  border-left:3px solid #F59E0B;border-radius:0 10px 10px 0;flex-wrap:wrap}
+.ko-phase-title{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:3px;color:#F59E0B}
+.ko-phase-sub{font-size:11px;color:#888;letter-spacing:1px;flex:1;min-width:120px}
+.ko-phase-status{font-size:10px;padding:3px 10px;border-radius:12px;letter-spacing:.5px;font-weight:700;white-space:nowrap}
+.ko-phase-status.open{background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3)}
+.ko-phase-status.locked{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.25)}
+.ko-phase-status.waiting{background:rgba(156,163,175,.1);color:#9ca3af;border:1px solid rgba(156,163,175,.25)}
+.ko-locked-msg{padding:24px 16px;background:rgba(156,163,175,.04);border:1px dashed rgba(156,163,175,.2);
+  border-radius:12px;text-align:center;color:#666;font-size:13px;line-height:1.7}
+.ko-locked-icon{font-size:32px;margin-bottom:10px;opacity:.4}
+.ko-match{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:14px;margin-bottom:12px;transition:all .2s}
+.ko-match.filled{background:rgba(245,158,11,.04);border-color:rgba(245,158,11,.25)}
+.ko-match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
+  font-size:11px;color:#888;letter-spacing:.5px}
+.ko-match-venue{color:#666;font-style:italic;font-size:10px}
+.ko-match-id{font-family:'Bebas Neue',cursive;color:#F59E0B;font-size:14px;letter-spacing:1px}
+.ko-team-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+  background:rgba(0,0,0,.2);margin-bottom:6px;cursor:pointer;transition:all .15s;
+  border:2px solid transparent;-webkit-tap-highlight-color:transparent}
+.ko-team-row:hover{background:rgba(255,255,255,.04)}
+.ko-team-row.picked{background:rgba(245,158,11,.1);border-color:#F59E0B}
+.ko-radio{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.2);
+  flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.ko-team-row.picked .ko-radio{border-color:#F59E0B;background:#F59E0B}
+.ko-team-row.picked .ko-radio::after{content:'';width:6px;height:6px;background:#0a0a0f;border-radius:50%}
+.ko-team-flag{font-size:20px;line-height:1;flex-shrink:0}
+.ko-team-name{flex:1;font-size:13px;font-weight:700;color:#f0f0f0;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ko-team-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(245,158,11,.2);
+  border-radius:6px;color:#fff;padding:6px 10px;font-size:12px;font-family:'Barlow',sans-serif;
+  font-weight:600;outline:none}
+.ko-team-input:focus{border-color:#F59E0B;background:rgba(245,158,11,.05)}
+.ko-team-input::placeholder{color:#555;font-style:italic}
+.ko-score-in{width:34px;height:34px;border:2px solid rgba(255,255,255,.15);border-radius:8px;
+  background:rgba(0,0,0,.4);color:#fff;text-align:center;font-size:18px;font-weight:800;
+  font-family:'Barlow',sans-serif;outline:none;padding:0;flex-shrink:0;
+  -moz-appearance:textfield}
+.ko-score-in::-webkit-inner-spin-button,.ko-score-in::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.ko-score-in:focus{border-color:#F59E0B;background:rgba(245,158,11,.1)}
+.ko-score-in.has-value{border-color:#F59E0B;color:#F59E0B;background:rgba(245,158,11,.08)}
+.ko-vs{text-align:center;color:#666;font-size:10px;letter-spacing:2px;margin:4px 0;font-weight:700}
+
+/* KO intro */
+.ko-intro{background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);
+  border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:12px;color:#86efac;line-height:1.6}
+.ko-intro strong{color:#fff}
+
 .save-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;
   background:rgba(4,4,14,.97);backdrop-filter:blur(14px);
   border-top:1px solid rgba(245,158,11,.25);padding:12px 20px;
@@ -285,9 +337,10 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
   </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('j1',this)">📅 Jornada 1</button>
-    <button class="tab" onclick="showTab('j2',this)">📅 Jornada 2</button>
-    <button class="tab" onclick="showTab('j3',this)">📅 Jornada 3</button>
+    <button class="tab active" onclick="showTab('j1',this)">📅 J1</button>
+    <button class="tab" onclick="showTab('j2',this)">📅 J2</button>
+    <button class="tab" onclick="showTab('j3',this)">📅 J3</button>
+    <button class="tab" onclick="showTab('ko',this)">🏆 Eliminatorias</button>
     <button class="tab" onclick="showTab('info',this)">ℹ️ Info</button>
   </div>
 
@@ -295,6 +348,7 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
     <div id="sec-j1" class="section show"></div>
     <div id="sec-j2" class="section"></div>
     <div id="sec-j3" class="section"></div>
+    <div id="sec-ko" class="section"></div>
     <div id="sec-info" class="section">
       <div class="info-card">
         <div class="info-card-title">📋 Tu información</div>
@@ -431,13 +485,94 @@ const MATCHES = [
   [72,'27 Jun','J3','J','🇩🇿','Argelia','🇦🇹','Austria'],
 ];
 
+// ── KNOCKOUT STRUCTURE ─────────────────────────────────────────────
+// Phases unlock when admin marks them open. Each phase has matches with placeholder labels
+// that will be filled with real qualifiers once previous phase completes.
+const KO_PHASES = [
+  {
+    id: '16',
+    title: 'DIECISEISAVOS DE FINAL',
+    sub: '28 Jun al 3 Jul · 16 partidos',
+    matches: [
+      ['M73','28 Jun','Los Angeles','2do Grupo A','2do Grupo B'],
+      ['M74','29 Jun','Houston','1ro Grupo E','2do Grupo F'],
+      ['M75','29 Jun','Boston','1ro Grupo E','3ro Gr. A/B/C/D/F'],
+      ['M76','29 Jun','Monterrey','1ro Grupo F','2do Grupo C'],
+      ['M77','30 Jun','Dallas','2do Grupo E','2do Grupo I'],
+      ['M78','30 Jun','Nueva York','1ro Grupo I','3ro Gr. C/D/F/G/H'],
+      ['M79','30 Jun','Ciudad de México','1ro Grupo A','3ro Gr. C/E/F/H/I'],
+      ['M80','1 Jul','Atlanta','1ro Grupo L','3ro Gr. E/H/I/J/K'],
+      ['M81','1 Jul','Seattle','1ro Grupo G','3ro Gr. A/E/H/I/J'],
+      ['M82','1 Jul','San Francisco','1ro Grupo D','3ro Gr. B/E/F/I/J'],
+      ['M83','2 Jul','Toronto','2do Grupo K','2do Grupo L'],
+      ['M84','2 Jul','Los Angeles','1ro Grupo H','2do Grupo J'],
+      ['M85','2 Jul','Vancouver','1ro Grupo B','3ro Gr. E/F/G/I/J'],
+      ['M86','3 Jul','Dallas','2do Grupo D','2do Grupo G'],
+      ['M87','3 Jul','Miami','1ro Grupo J','2do Grupo H'],
+      ['M88','3 Jul','Kansas City','1ro Grupo K','3ro Gr. D/E/I/J/L'],
+    ]
+  },
+  {
+    id: '8',
+    title: 'OCTAVOS DE FINAL',
+    sub: '4 al 7 Jul · 8 partidos',
+    matches: [
+      ['M89','4 Jul','Houston','Ganador M73','Ganador M75'],
+      ['M90','4 Jul','Philadelphia','Ganador M74','Ganador M77'],
+      ['M91','5 Jul','Nueva York','Ganador M76','Ganador M78'],
+      ['M92','5 Jul','Ciudad de México','Ganador M79','Ganador M80'],
+      ['M93','6 Jul','Dallas','Ganador M83','Ganador M84'],
+      ['M94','6 Jul','Seattle','Ganador M81','Ganador M82'],
+      ['M95','7 Jul','Atlanta','Ganador M86','Ganador M88'],
+      ['M96','7 Jul','Vancouver','Ganador M85','Ganador M87'],
+    ]
+  },
+  {
+    id: '4',
+    title: 'CUARTOS DE FINAL',
+    sub: '9 al 11 Jul · 4 partidos',
+    matches: [
+      ['M97','9 Jul','Boston','Ganador M89','Ganador M90'],
+      ['M98','10 Jul','Los Angeles','Ganador M93','Ganador M94'],
+      ['M99','11 Jul','Miami','Ganador M91','Ganador M92'],
+      ['M100','11 Jul','Kansas City','Ganador M95','Ganador M96'],
+    ]
+  },
+  {
+    id: '2',
+    title: 'SEMIFINALES',
+    sub: '14 y 15 Jul · 2 partidos',
+    matches: [
+      ['M101','14 Jul','Dallas','Ganador M97','Ganador M98'],
+      ['M102','15 Jul','Atlanta','Ganador M99','Ganador M100'],
+    ]
+  },
+  {
+    id: '3p',
+    title: 'TERCER PUESTO',
+    sub: '18 Jul · 1 partido',
+    matches: [
+      ['M103','18 Jul','Miami','Perdedor M101','Perdedor M102'],
+    ]
+  },
+  {
+    id: 'F',
+    title: 'GRAN FINAL',
+    sub: '19 Jul · MetLife Stadium, Nueva York',
+    matches: [
+      ['M104','19 Jul','MetLife Stadium','Ganador M101','Ganador M102'],
+    ]
+  },
+];
+
 // ── STATE ──
 let participantId = null;
 let participantName = null;
 let participantCode = null;
-let predictions = {}; // { matchNum: {h: 2, a: 1} }
+let predictions = {}; // { matchNum: {h: 2, a: 1} } for groups; { M73: {team:'México', score:2, oppTeam:'Brasil', oppScore:1} } for KO
 let originalPredictions = {};
 let isLocked = false;
+let phasesOpen = {'16':false,'8':false,'4':false,'2':false,'3p':false,'F':false}; // KO phases unlock states
 
 // ── UTILITIES ──
 const $ = id => document.getElementById(id);
@@ -516,8 +651,173 @@ async function loadAndStart(){
   }
 
   renderAllMatches();
+  renderKO();
   updateProgress();
   listenForResults();
+  listenPhases();
+}
+
+// ── LISTEN FOR PHASE UNLOCK ──
+function listenPhases(){
+  onSnapshot(doc(db,'polla','config'), snap => {
+    if(snap.exists()){
+      const data = snap.data();
+      phasesOpen = {...phasesOpen, ...(data.phasesOpen||{})};
+      renderKO();
+    }
+  });
+}
+
+// ── RENDER KNOCKOUT PHASES ──
+function renderKO(){
+  const cont = $('sec-ko');
+  cont.innerHTML = '';
+
+  // Intro
+  const intro = document.createElement('div');
+  intro.className = 'ko-intro';
+  intro.innerHTML = `🏆 <strong>Fases eliminatorias</strong> · Cada fase se desbloquea cuando termine la anterior. Predice qué equipo avanza y el marcador exacto. <strong>+1 pt</strong> si aciertas el ganador · <strong>+3 pts</strong> si aciertas ganador + marcador.`;
+  cont.appendChild(intro);
+
+  KO_PHASES.forEach((phase, idx) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ko-phase';
+
+    const isOpen = phasesOpen[phase.id] === true;
+    const prevPhase = idx === 0 ? null : KO_PHASES[idx-1];
+    const prevOpen = !prevPhase || phasesOpen[prevPhase.id];
+
+    // Phase header
+    const hdr = document.createElement('div');
+    hdr.className = 'ko-phase-header';
+    let statusLabel, statusClass;
+    if(isOpen){ statusLabel='🟢 Abierto'; statusClass='open'; }
+    else if(!prevOpen){ statusLabel='⏳ Esperando fase anterior'; statusClass='waiting'; }
+    else { statusLabel='🔒 Aún no disponible'; statusClass='locked'; }
+    hdr.innerHTML = `
+      <span class="ko-phase-title">${phase.title}</span>
+      <span class="ko-phase-sub">${phase.sub}</span>
+      <span class="ko-phase-status ${statusClass}">${statusLabel}</span>
+    `;
+    wrap.appendChild(hdr);
+
+    if(!isOpen){
+      const msg = document.createElement('div');
+      msg.className = 'ko-locked-msg';
+      msg.innerHTML = `<div class="ko-locked-icon">🔒</div>
+        Esta fase se abrirá cuando termine la fase anterior y el organizador habilite el ingreso.<br>
+        <span style="font-size:11px;color:#444">Volvé a revisar más adelante.</span>`;
+      wrap.appendChild(msg);
+      cont.appendChild(wrap);
+      return;
+    }
+
+    // Matches
+    phase.matches.forEach(m => {
+      const [mid, date, venue, label1, label2] = m;
+      const card = document.createElement('div');
+      card.className = 'ko-match';
+      const p = predictions[mid] || {};
+      const filled = p.team && p.opp && p.score !== undefined && p.oppScore !== undefined;
+      if(filled) card.classList.add('filled');
+
+      const pick = p.team || ''; // which side is picked: stores the team name
+      const team1Picked = p.team && p.team === (p.team1Label || label1);
+      const team2Picked = p.team && p.team === (p.team2Label || label2);
+
+      // Determine if team labels are placeholders (start with "Ganador" or "Perdedor" or contain "Grupo")
+      const isPlaceholder = lbl => /^(Ganador|Perdedor|\d+|2do|3ro|1ro)/.test(lbl);
+      const ph1 = isPlaceholder(label1);
+      const ph2 = isPlaceholder(label2);
+
+      card.innerHTML = `
+        <div class="ko-match-top">
+          <span class="ko-match-id">${mid}</span>
+          <span class="ko-match-venue">${date} · ${venue}</span>
+        </div>
+        <div class="ko-team-row ${p.pickedSide==='1'?'picked':''}" data-mid="${mid}" data-side="1">
+          <div class="ko-radio"></div>
+          ${ph1
+            ? `<input class="ko-team-input" placeholder="${label1}" data-mid="${mid}" data-field="team1Name" value="${escHtml(p.team1Name||'')}"/>`
+            : `<span class="ko-team-name">${label1}</span>`}
+          <input class="ko-score-in ${p.score1!==undefined?'has-value':''}" type="number" min="0" max="20" inputmode="numeric"
+                 data-mid="${mid}" data-side="1" value="${p.score1!==undefined?p.score1:''}" placeholder="-"/>
+        </div>
+        <div class="ko-vs">VS</div>
+        <div class="ko-team-row ${p.pickedSide==='2'?'picked':''}" data-mid="${mid}" data-side="2">
+          <div class="ko-radio"></div>
+          ${ph2
+            ? `<input class="ko-team-input" placeholder="${label2}" data-mid="${mid}" data-field="team2Name" value="${escHtml(p.team2Name||'')}"/>`
+            : `<span class="ko-team-name">${label2}</span>`}
+          <input class="ko-score-in ${p.score2!==undefined?'has-value':''}" type="number" min="0" max="20" inputmode="numeric"
+                 data-mid="${mid}" data-side="2" value="${p.score2!==undefined?p.score2:''}" placeholder="-"/>
+        </div>
+      `;
+      wrap.appendChild(card);
+    });
+
+    cont.appendChild(wrap);
+  });
+
+  // Attach listeners
+  cont.querySelectorAll('.ko-team-row').forEach(row => {
+    row.addEventListener('click', e => {
+      // Don't trigger when clicking on inputs
+      if(e.target.tagName === 'INPUT') return;
+      if(isLocked) return;
+      const mid = row.dataset.mid;
+      const side = row.dataset.side;
+      if(!predictions[mid]) predictions[mid] = {};
+      predictions[mid].pickedSide = side;
+      // Update visuals
+      const card = row.closest('.ko-match');
+      card.querySelectorAll('.ko-team-row').forEach(r => r.classList.remove('picked'));
+      row.classList.add('picked');
+      checkKOFilled(mid, card);
+      updateSaveBar();
+    });
+  });
+
+  cont.querySelectorAll('.ko-score-in').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const mid = e.target.dataset.mid;
+      const side = e.target.dataset.side;
+      const val = e.target.value.trim();
+      if(!predictions[mid]) predictions[mid] = {};
+      if(val === '') {
+        delete predictions[mid]['score'+side];
+        e.target.classList.remove('has-value');
+      } else {
+        const n = parseInt(val);
+        if(isNaN(n) || n < 0) return;
+        predictions[mid]['score'+side] = n;
+        e.target.classList.add('has-value');
+      }
+      const card = e.target.closest('.ko-match');
+      checkKOFilled(mid, card);
+      updateSaveBar();
+    });
+  });
+
+  cont.querySelectorAll('.ko-team-input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const mid = e.target.dataset.mid;
+      const field = e.target.dataset.field;
+      if(!predictions[mid]) predictions[mid] = {};
+      predictions[mid][field] = e.target.value;
+      const card = e.target.closest('.ko-match');
+      checkKOFilled(mid, card);
+      updateSaveBar();
+    });
+  });
+}
+
+function checkKOFilled(mid, card){
+  const p = predictions[mid] || {};
+  const ok = p.pickedSide && p.score1 !== undefined && p.score2 !== undefined;
+  if(ok) card.classList.add('filled');
+  else card.classList.remove('filled');
+  updateProgress();
 }
 
 // ── RENDER MATCHES ──
@@ -611,11 +911,34 @@ function onScoreChange(e){
   updateSaveBar();
 }
 
+function updateKOProgress(){
+  updateProgress();
+  updateSaveBar();
+}
+
 function updateProgress(){
-  const filled = Object.values(predictions).filter(p => p && p.h !== undefined && p.a !== undefined).length;
-  const total = MATCHES.length;
+  // Group matches
+  const groupFilled = MATCHES.filter(m => {
+    const p = predictions[m[0]];
+    return p && p.h !== undefined && p.a !== undefined;
+  }).length;
+  const groupTotal = MATCHES.length;
+
+  // KO matches (only count opened phases)
+  let koFilled = 0, koTotal = 0;
+  KO_PHASES.forEach(phase => {
+    if(!phasesOpen[phase.id]) return;
+    phase.matches.forEach(m => {
+      koTotal++;
+      const p = predictions[m[0]];
+      if(p && p.pickedSide && p.score1 !== undefined && p.score2 !== undefined) koFilled++;
+    });
+  });
+
+  const total = groupTotal + koTotal;
+  const filled = groupFilled + koFilled;
   $('progress-count').textContent = `${filled} / ${total} partidos`;
-  $('progress-fill').style.width = (filled/total*100) + '%';
+  $('progress-fill').style.width = (total > 0 ? (filled/total*100) : 0) + '%';
   $('info-count').textContent = `${filled} / ${total}`;
 }
 
@@ -627,13 +950,6 @@ function updateSaveBar(){
   const btn = $('save-btn');
   const main = $('save-info-main');
   const sub = $('save-info-sub');
-  if(isLocked){
-    btn.disabled = true;
-    btn.textContent = '🔒 BLOQUEADO';
-    main.textContent = 'Pronósticos bloqueados';
-    sub.textContent = 'El plazo cerró el 10 Jun 23:59';
-    return;
-  }
   if(hasChanges()){
     btn.disabled = false;
     btn.classList.remove('saved');
@@ -651,7 +967,6 @@ function updateSaveBar(){
 
 // ── SAVE ──
 window.saveAll = async function(){
-  if(isLocked) return;
   const btn = $('save-btn');
   btn.classList.add('saving');
   btn.disabled = true;

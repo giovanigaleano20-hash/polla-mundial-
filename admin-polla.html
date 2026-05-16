@@ -435,6 +435,7 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#444;
   <button class="tab-btn" onclick="showTab('codigos',this)">🔑 Códigos</button>
   <button class="tab-btn" onclick="showTab('pronosticos',this)">🎯 Pronósticos</button>
   <button class="tab-btn" onclick="showTab('resultados',this)">⚽ Resultados</button>
+  <button class="tab-btn" onclick="showTab('fases',this)">🏆 Fases KO</button>
   <button class="tab-btn" onclick="showTab('premios',this)">💰 Premios</button>
   <button class="tab-btn" onclick="showTab('reglas',this)">📋 Puntos</button>
   <button class="tab-btn" onclick="showTab('caja',this)">💵 Caja</button>
@@ -526,6 +527,15 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#444;
     </div>
     <div id="resultados-lista"></div>
     <p class="hint">Después de guardar un resultado, los puntos se recalculan al instante para todos.</p>
+  </div>
+
+  <!-- FASES KO -->
+  <div id="sec-fases" class="section">
+    <div class="section-title">🏆 Control de Fases Eliminatorias</div>
+    <p class="prize-note">Activa cada fase cuando termine la anterior. Los participantes recibirán acceso para predecir.<br>
+      <strong style="color:#4ade80">Recomendación:</strong> habilita 16avos el 28 Jun en la mañana, Octavos el 4 Jul, etc.</p>
+    <div id="fases-lista" style="display:grid;gap:10px"></div>
+    <p class="hint">Al activar una fase, todos los participantes pueden empezar a predecir esa ronda.</p>
   </div>
 
   <!-- PREMIOS -->
@@ -754,6 +764,7 @@ window.showTab = (id, btn) => {
   if(id==='codigos') renderCodigos();
   if(id==='resultados') renderResultados();
   if(id==='pronosticos') renderPronosticos();
+  if(id==='fases') renderFases();
 };
 
 // ── PREMIOS ──
@@ -1232,6 +1243,80 @@ window.copiarFaltantes = function(){
   }).join('\n');
   navigator.clipboard.writeText(list).then(() => showToast(`📋 ${faltantes.length} pendientes copiados`));
 };
+
+// ══════════════════════════════════════════════════════════════
+// KNOCKOUT PHASES CONTROL
+// ══════════════════════════════════════════════════════════════
+const KO_PHASES_INFO = [
+  {id:'16',  name:'DIECISEISAVOS DE FINAL', sub:'28 Jun al 3 Jul · 16 partidos'},
+  {id:'8',   name:'OCTAVOS DE FINAL',       sub:'4 al 7 Jul · 8 partidos'},
+  {id:'4',   name:'CUARTOS DE FINAL',       sub:'9 al 11 Jul · 4 partidos'},
+  {id:'2',   name:'SEMIFINALES',            sub:'14 y 15 Jul · 2 partidos'},
+  {id:'3p',  name:'TERCER PUESTO',          sub:'18 Jul · 1 partido'},
+  {id:'F',   name:'GRAN FINAL',             sub:'19 Jul · Nueva York · 1 partido'},
+];
+let phasesOpen = {'16':false,'8':false,'4':false,'2':false,'3p':false,'F':false};
+
+import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(fs => {
+  fs.onSnapshot(fs.doc(db,'polla','config'), snap => {
+    if(snap.exists()){
+      phasesOpen = {...phasesOpen, ...(snap.data().phasesOpen||{})};
+      if(document.getElementById('sec-fases').classList.contains('show')) renderFases();
+    }
+  });
+});
+
+window.renderFases = function(){
+  const cont = document.getElementById('fases-lista');
+  cont.innerHTML = '';
+  KO_PHASES_INFO.forEach(ph => {
+    const open = phasesOpen[ph.id];
+    const card = document.createElement('div');
+    card.style.cssText = `display:flex;align-items:center;gap:14px;padding:16px 18px;
+      background:${open?'rgba(74,222,128,.08)':'rgba(255,255,255,.03)'};
+      border:1px solid ${open?'rgba(74,222,128,.3)':'rgba(255,255,255,.08)'};
+      border-radius:12px`;
+    card.innerHTML = `
+      <div style="flex:1">
+        <div style="font-family:'Bebas Neue',cursive;font-size:16px;letter-spacing:2px;color:${open?'#4ade80':'#F59E0B'};margin-bottom:2px">${ph.name}</div>
+        <div style="font-size:11px;color:#888;letter-spacing:.5px">${ph.sub}</div>
+      </div>
+      <span style="font-size:10px;padding:4px 10px;border-radius:12px;letter-spacing:.5px;font-weight:700;
+        background:${open?'rgba(74,222,128,.15)':'rgba(248,113,113,.1)'};
+        color:${open?'#4ade80':'#f87171'};
+        border:1px solid ${open?'rgba(74,222,128,.3)':'rgba(248,113,113,.25)'}">
+        ${open?'🟢 ABIERTA':'🔒 CERRADA'}
+      </span>
+      <button onclick="togglePhase('${ph.id}')" style="background:${open?'transparent':'#F59E0B'};
+        color:${open?'#f87171':'#0a0a0f'};
+        border:1px solid ${open?'rgba(248,113,113,.4)':'#F59E0B'};
+        border-radius:8px;padding:8px 16px;font-family:'Bebas Neue',cursive;font-size:13px;
+        letter-spacing:2px;cursor:pointer;white-space:nowrap">
+        ${open?'🔒 CERRAR':'🟢 ABRIR'}
+      </button>
+    `;
+    cont.appendChild(card);
+  });
+};
+
+window.togglePhase = async function(phaseId){
+  const next = !phasesOpen[phaseId];
+  const msg = next
+    ? `¿Abrir la fase "${KO_PHASES_INFO.find(p=>p.id===phaseId).name}"? Los participantes podrán predecir.`
+    : `¿Cerrar la fase "${KO_PHASES_INFO.find(p=>p.id===phaseId).name}"? Los participantes no podrán seguir editando.`;
+  if(!confirm(msg)) return;
+  phasesOpen[phaseId] = next;
+  try {
+    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(doc(db,'polla','config'), {phasesOpen, updatedAt: new Date().toISOString()}, {merge:true});
+    renderFases();
+    showToast(next ? '✅ Fase abierta · Participantes notificados' : '🔒 Fase cerrada');
+  } catch(e){
+    phasesOpen[phaseId] = !next;
+    showToast('❌ Error: '+e.message, true);
+  }
+};
+
 
 
 async function recalcularPuntos(){
