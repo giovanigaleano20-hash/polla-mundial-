@@ -488,28 +488,29 @@ const MATCHES = [
 // ── KNOCKOUT STRUCTURE ─────────────────────────────────────────────
 // Phases unlock when admin marks them open. Each phase has matches with placeholder labels
 // that will be filled with real qualifiers once previous phase completes.
+// Match IDs continue numbering from 73 (after the 72 group matches)
 const KO_PHASES = [
   {
     id: '16',
     title: 'DIECISEISAVOS DE FINAL',
     sub: '28 Jun al 3 Jul · 16 partidos',
     matches: [
-      ['M73','28 Jun','Los Angeles','2do Grupo A','2do Grupo B'],
-      ['M74','29 Jun','Houston','1ro Grupo E','2do Grupo F'],
-      ['M75','29 Jun','Boston','1ro Grupo E','3ro Gr. A/B/C/D/F'],
-      ['M76','29 Jun','Monterrey','1ro Grupo F','2do Grupo C'],
-      ['M77','30 Jun','Dallas','2do Grupo E','2do Grupo I'],
-      ['M78','30 Jun','Nueva York','1ro Grupo I','3ro Gr. C/D/F/G/H'],
-      ['M79','30 Jun','Ciudad de México','1ro Grupo A','3ro Gr. C/E/F/H/I'],
-      ['M80','1 Jul','Atlanta','1ro Grupo L','3ro Gr. E/H/I/J/K'],
-      ['M81','1 Jul','Seattle','1ro Grupo G','3ro Gr. A/E/H/I/J'],
-      ['M82','1 Jul','San Francisco','1ro Grupo D','3ro Gr. B/E/F/I/J'],
-      ['M83','2 Jul','Toronto','2do Grupo K','2do Grupo L'],
-      ['M84','2 Jul','Los Angeles','1ro Grupo H','2do Grupo J'],
-      ['M85','2 Jul','Vancouver','1ro Grupo B','3ro Gr. E/F/G/I/J'],
-      ['M86','3 Jul','Dallas','2do Grupo D','2do Grupo G'],
-      ['M87','3 Jul','Miami','1ro Grupo J','2do Grupo H'],
-      ['M88','3 Jul','Kansas City','1ro Grupo K','3ro Gr. D/E/I/J/L'],
+      [73,'28 Jun','Los Angeles','2do Grupo A','2do Grupo B'],
+      [74,'29 Jun','Houston','1ro Grupo E','2do Grupo F'],
+      [75,'29 Jun','Boston','1ro Grupo E','3ro Gr. A/B/C/D/F'],
+      [76,'29 Jun','Monterrey','1ro Grupo F','2do Grupo C'],
+      [77,'30 Jun','Dallas','2do Grupo E','2do Grupo I'],
+      [78,'30 Jun','Nueva York','1ro Grupo I','3ro Gr. C/D/F/G/H'],
+      [79,'30 Jun','Ciudad de México','1ro Grupo A','3ro Gr. C/E/F/H/I'],
+      [80,'1 Jul','Atlanta','1ro Grupo L','3ro Gr. E/H/I/J/K'],
+      [81,'1 Jul','Seattle','1ro Grupo G','3ro Gr. A/E/H/I/J'],
+      [82,'1 Jul','San Francisco','1ro Grupo D','3ro Gr. B/E/F/I/J'],
+      [83,'2 Jul','Toronto','2do Grupo K','2do Grupo L'],
+      [84,'2 Jul','Los Angeles','1ro Grupo H','2do Grupo J'],
+      [85,'2 Jul','Vancouver','1ro Grupo B','3ro Gr. E/F/G/I/J'],
+      [86,'3 Jul','Dallas','2do Grupo D','2do Grupo G'],
+      [87,'3 Jul','Miami','1ro Grupo J','2do Grupo H'],
+      [88,'3 Jul','Kansas City','1ro Grupo K','3ro Gr. D/E/I/J/L'],
     ]
   },
   {
@@ -517,14 +518,14 @@ const KO_PHASES = [
     title: 'OCTAVOS DE FINAL',
     sub: '4 al 7 Jul · 8 partidos',
     matches: [
-      ['M89','4 Jul','Houston','Ganador M73','Ganador M75'],
-      ['M90','4 Jul','Philadelphia','Ganador M74','Ganador M77'],
-      ['M91','5 Jul','Nueva York','Ganador M76','Ganador M78'],
-      ['M92','5 Jul','Ciudad de México','Ganador M79','Ganador M80'],
-      ['M93','6 Jul','Dallas','Ganador M83','Ganador M84'],
-      ['M94','6 Jul','Seattle','Ganador M81','Ganador M82'],
-      ['M95','7 Jul','Atlanta','Ganador M86','Ganador M88'],
-      ['M96','7 Jul','Vancouver','Ganador M85','Ganador M87'],
+      [89,'4 Jul','Houston','Ganador 73','Ganador 75'],
+      [90,'4 Jul','Philadelphia','Ganador 74','Ganador 77'],
+      [91,'5 Jul','Nueva York','Ganador 76','Ganador 78'],
+      [92,'5 Jul','Ciudad de México','Ganador 79','Ganador 80'],
+      [93,'6 Jul','Dallas','Ganador 83','Ganador 84'],
+      [94,'6 Jul','Seattle','Ganador 81','Ganador 82'],
+      [95,'7 Jul','Atlanta','Ganador 86','Ganador 88'],
+      [96,'7 Jul','Vancouver','Ganador 85','Ganador 87'],
     ]
   },
   {
@@ -532,10 +533,10 @@ const KO_PHASES = [
     title: 'CUARTOS DE FINAL',
     sub: '9 al 11 Jul · 4 partidos',
     matches: [
-      ['M97','9 Jul','Boston','Ganador M89','Ganador M90'],
-      ['M98','10 Jul','Los Angeles','Ganador M93','Ganador M94'],
-      ['M99','11 Jul','Miami','Ganador M91','Ganador M92'],
-      ['M100','11 Jul','Kansas City','Ganador M95','Ganador M96'],
+      [97,'9 Jul','Boston','Ganador 89','Ganador 90'],
+      [98,'10 Jul','Los Angeles','Ganador 93','Ganador 94'],
+      [99,'11 Jul','Miami','Ganador 91','Ganador 92'],
+      [100,'11 Jul','Kansas City','Ganador 95','Ganador 96'],
     ]
   },
   {
@@ -543,8 +544,8 @@ const KO_PHASES = [
     title: 'SEMIFINALES',
     sub: '14 y 15 Jul · 2 partidos',
     matches: [
-      ['M101','14 Jul','Dallas','Ganador M97','Ganador M98'],
-      ['M102','15 Jul','Atlanta','Ganador M99','Ganador M100'],
+      [101,'14 Jul','Dallas','Ganador 97','Ganador 98'],
+      [102,'15 Jul','Atlanta','Ganador 99','Ganador 100'],
     ]
   },
   {
@@ -552,7 +553,7 @@ const KO_PHASES = [
     title: 'TERCER PUESTO',
     sub: '18 Jul · 1 partido',
     matches: [
-      ['M103','18 Jul','Miami','Perdedor M101','Perdedor M102'],
+      [103,'18 Jul','Miami','Perdedor 101','Perdedor 102'],
     ]
   },
   {
@@ -560,7 +561,7 @@ const KO_PHASES = [
     title: 'GRAN FINAL',
     sub: '19 Jul · MetLife Stadium, Nueva York',
     matches: [
-      ['M104','19 Jul','MetLife Stadium','Ganador M101','Ganador M102'],
+      [104,'19 Jul','MetLife Stadium','Ganador 101','Ganador 102'],
     ]
   },
 ];

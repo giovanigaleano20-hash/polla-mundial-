@@ -523,6 +523,12 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#444;
       <button class="export-btn" onclick="filtrarRes('J1',this)" id="fr-J1">Jornada 1</button>
       <button class="export-btn" onclick="filtrarRes('J2',this)" id="fr-J2">Jornada 2</button>
       <button class="export-btn" onclick="filtrarRes('J3',this)" id="fr-J3">Jornada 3</button>
+      <button class="export-btn" onclick="filtrarRes('KO16',this)" id="fr-KO16">16avos</button>
+      <button class="export-btn" onclick="filtrarRes('KO8',this)" id="fr-KO8">Octavos</button>
+      <button class="export-btn" onclick="filtrarRes('KO4',this)" id="fr-KO4">Cuartos</button>
+      <button class="export-btn" onclick="filtrarRes('KO2',this)" id="fr-KO2">Semis</button>
+      <button class="export-btn" onclick="filtrarRes('KO3p',this)" id="fr-KO3p">3er Puesto</button>
+      <button class="export-btn" onclick="filtrarRes('KOF',this)" id="fr-KOF">Final</button>
       <button class="export-btn" onclick="filtrarRes('pend',this)" id="fr-pend">Pendientes</button>
     </div>
     <div id="resultados-lista"></div>
@@ -981,6 +987,45 @@ const MATCHES = [
   [70,'27 Jun','J3','K','🇨🇩','R.D. Congo','🇺🇿','Uzbekistán'],
   [71,'27 Jun','J3','J','🇯🇴','Jordania','🇦🇷','Argentina'],
   [72,'27 Jun','J3','J','🇩🇿','Argelia','🇦🇹','Austria'],
+  // ─── KNOCKOUTS ───
+  // 16avos (28 Jun – 3 Jul)
+  [73,'28 Jun','KO16','16','','2do A','','2do B'],
+  [74,'29 Jun','KO16','16','','1ro E','','2do F'],
+  [75,'29 Jun','KO16','16','','1ro E','','3ro A/B/C/D/F'],
+  [76,'29 Jun','KO16','16','','1ro F','','2do C'],
+  [77,'30 Jun','KO16','16','','2do E','','2do I'],
+  [78,'30 Jun','KO16','16','','1ro I','','3ro C/D/F/G/H'],
+  [79,'30 Jun','KO16','16','','1ro A','','3ro C/E/F/H/I'],
+  [80,'1 Jul','KO16','16','','1ro L','','3ro E/H/I/J/K'],
+  [81,'1 Jul','KO16','16','','1ro G','','3ro A/E/H/I/J'],
+  [82,'1 Jul','KO16','16','','1ro D','','3ro B/E/F/I/J'],
+  [83,'2 Jul','KO16','16','','2do K','','2do L'],
+  [84,'2 Jul','KO16','16','','1ro H','','2do J'],
+  [85,'2 Jul','KO16','16','','1ro B','','3ro E/F/G/I/J'],
+  [86,'3 Jul','KO16','16','','2do D','','2do G'],
+  [87,'3 Jul','KO16','16','','1ro J','','2do H'],
+  [88,'3 Jul','KO16','16','','1ro K','','3ro D/E/I/J/L'],
+  // Octavos (4 – 7 Jul)
+  [89,'4 Jul','KO8','8','','Gan. M73','','Gan. M75'],
+  [90,'4 Jul','KO8','8','','Gan. M74','','Gan. M77'],
+  [91,'5 Jul','KO8','8','','Gan. M76','','Gan. M78'],
+  [92,'5 Jul','KO8','8','','Gan. M79','','Gan. M80'],
+  [93,'6 Jul','KO8','8','','Gan. M83','','Gan. M84'],
+  [94,'6 Jul','KO8','8','','Gan. M81','','Gan. M82'],
+  [95,'7 Jul','KO8','8','','Gan. M86','','Gan. M88'],
+  [96,'7 Jul','KO8','8','','Gan. M85','','Gan. M87'],
+  // Cuartos (9 – 11 Jul)
+  [97,'9 Jul','KO4','4','','Gan. M89','','Gan. M90'],
+  [98,'10 Jul','KO4','4','','Gan. M93','','Gan. M94'],
+  [99,'11 Jul','KO4','4','','Gan. M91','','Gan. M92'],
+  [100,'11 Jul','KO4','4','','Gan. M95','','Gan. M96'],
+  // Semis (14 – 15 Jul)
+  [101,'14 Jul','KO2','SF','','Gan. M97','','Gan. M98'],
+  [102,'15 Jul','KO2','SF','','Gan. M99','','Gan. M100'],
+  // Tercer puesto (18 Jul)
+  [103,'18 Jul','KO3p','3°','','Perd. M101','','Perd. M102'],
+  // Final (19 Jul)
+  [104,'19 Jul','KOF','F','','Gan. M101','','Gan. M102'],
 ];
 
 let results = {};        // {matchNum: {h, a}}
@@ -1009,31 +1054,49 @@ window.renderResultados = function(){
   if(resFilter==='J1') list = MATCHES.filter(m => m[2]==='J1');
   else if(resFilter==='J2') list = MATCHES.filter(m => m[2]==='J2');
   else if(resFilter==='J3') list = MATCHES.filter(m => m[2]==='J3');
+  else if(resFilter==='KO16') list = MATCHES.filter(m => m[2]==='KO16');
+  else if(resFilter==='KO8') list = MATCHES.filter(m => m[2]==='KO8');
+  else if(resFilter==='KO4') list = MATCHES.filter(m => m[2]==='KO4');
+  else if(resFilter==='KO2') list = MATCHES.filter(m => m[2]==='KO2');
+  else if(resFilter==='KO3p') list = MATCHES.filter(m => m[2]==='KO3p');
+  else if(resFilter==='KOF') list = MATCHES.filter(m => m[2]==='KOF');
   else if(resFilter==='pend') list = MATCHES.filter(m => !results[m[0]] || results[m[0]].h===undefined);
 
+  const phaseNames = {J1:'Jornada 1', J2:'Jornada 2', J3:'Jornada 3',
+    KO16:'🏆 16avos', KO8:'🏆 Octavos', KO4:'🏆 Cuartos',
+    KO2:'🏆 Semifinales', KO3p:'🥉 Tercer Puesto', KOF:'⭐ Gran Final'};
+
   let currentDate = null;
+  let currentPhase = null;
   list.forEach(m => {
     const [num,date,jor,grp,fl1,n1,fl2,n2] = m;
-    if(date !== currentDate){
-      currentDate = date;
+    const isKO = jor.startsWith('KO');
+    if(date !== currentDate || jor !== currentPhase){
+      currentDate = date; currentPhase = jor;
       const dhdr = document.createElement('div');
-      dhdr.style.cssText = 'font-size:11px;color:#F59E0B;font-weight:700;letter-spacing:1px;margin:14px 0 6px;padding:4px 10px;background:rgba(245,158,11,.08);border-radius:5px;border-left:3px solid #F59E0B';
-      dhdr.textContent = `📅 ${date}  ·  ${jor==='J1'?'Jornada 1':jor==='J2'?'Jornada 2':'Jornada 3'}`;
+      dhdr.style.cssText = `font-size:11px;color:${isKO?'#fbbf24':'#F59E0B'};font-weight:700;letter-spacing:1px;margin:14px 0 6px;padding:4px 10px;background:${isKO?'rgba(251,191,36,.12)':'rgba(245,158,11,.08)'};border-radius:5px;border-left:3px solid ${isKO?'#fbbf24':'#F59E0B'}`;
+      dhdr.textContent = `📅 ${date}  ·  ${phaseNames[jor]||jor}`;
       cont.appendChild(dhdr);
     }
     const r = results[num] || {};
     const card = document.createElement('div');
     const hasResult = r.h !== undefined && r.a !== undefined;
     card.style.cssText = `display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:6px;
-      background:${hasResult?'rgba(74,222,128,.06)':'rgba(255,255,255,.03)'};
-      border:1px solid ${hasResult?'rgba(74,222,128,.25)':'rgba(255,255,255,.08)'};border-radius:8px`;
+      background:${hasResult?'rgba(74,222,128,.06)':isKO?'rgba(251,191,36,.04)':'rgba(255,255,255,.03)'};
+      border:1px solid ${hasResult?'rgba(74,222,128,.25)':isKO?'rgba(251,191,36,.15)':'rgba(255,255,255,.08)'};border-radius:8px`;
+    // For KO matches show placeholder labels (n1, n2 instead of flags + names)
+    const team1Display = isKO
+      ? `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ddd">${n1}</span>`
+      : `<span style="font-size:18px">${fl1}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n1}</span>`;
+    const team2Display = isKO
+      ? `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ddd">${n2}</span>`
+      : `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n2}</span><span style="font-size:18px">${fl2}</span>`;
     card.innerHTML = `
-      <span style="font-family:'Bebas Neue',cursive;font-size:14px;color:#666;width:24px;text-align:center">${num}</span>
-      <span style="font-size:11px;color:#888;background:rgba(245,158,11,.1);color:#F59E0B;padding:2px 6px;border-radius:4px">${grp}</span>
+      <span style="font-family:'Bebas Neue',cursive;font-size:14px;color:${isKO?'#fbbf24':'#666'};width:30px;text-align:center">${num}</span>
+      <span style="font-size:11px;background:rgba(245,158,11,.1);color:#F59E0B;padding:2px 6px;border-radius:4px;font-weight:700">${grp}</span>
       <div style="flex:1;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-width:0">
         <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#f0f0f0;min-width:0">
-          <span style="font-size:18px">${fl1}</span>
-          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n1}</span>
+          ${team1Display}
         </div>
         <div style="display:flex;align-items:center;gap:3px">
           <input type="number" min="0" max="20" value="${r.h!==undefined?r.h:''}" data-num="${num}" data-side="h"
@@ -1045,8 +1108,7 @@ window.renderResultados = function(){
                  oninput="updRes(${num},'a',this.value)"/>
         </div>
         <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;font-size:13px;font-weight:700;color:#f0f0f0;min-width:0">
-          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n2}</span>
-          <span style="font-size:18px">${fl2}</span>
+          ${team2Display}
         </div>
       </div>`;
     cont.appendChild(card);
@@ -1327,12 +1389,26 @@ async function recalcularPuntos(){
     let pts = 0;
     Object.entries(results).forEach(([num, r]) => {
       if(r.h===undefined || r.a===undefined) return;
+      const isKO = parseInt(num) > 72;
       const pk = picks[num];
-      if(!pk || pk.h===undefined || pk.a===undefined) return;
-      if(pk.h === r.h && pk.a === r.a){ pts += 3; return; }
-      const pw = pk.h > pk.a ? 'H' : (pk.h < pk.a ? 'A' : 'D');
-      const rw = r.h > r.a ? 'H' : (r.h < r.a ? 'A' : 'D');
-      if(pw === rw) pts += 1;
+      if(!pk) return;
+
+      if(!isKO){
+        // Group match: {h, a}
+        if(pk.h===undefined || pk.a===undefined) return;
+        if(pk.h === r.h && pk.a === r.a){ pts += 3; return; }
+        const pw = pk.h > pk.a ? 'H' : (pk.h < pk.a ? 'A' : 'D');
+        const rw = r.h > r.a ? 'H' : (r.h < r.a ? 'A' : 'D');
+        if(pw === rw) pts += 1;
+      } else {
+        // KO match: {pickedSide, score1, score2}
+        if(pk.score1===undefined || pk.score2===undefined || !pk.pickedSide) return;
+        const realWinnerSide = r.h > r.a ? '1' : (r.h < r.a ? '2' : null);
+        if(pk.score1 === r.h && pk.score2 === r.a && pk.pickedSide === realWinnerSide){
+          pts += 3; return;
+        }
+        if(pk.pickedSide === realWinnerSide) pts += 1;
+      }
     });
     if(p.pts !== pts){ changed = true; return {...p, pts}; }
     return p;
