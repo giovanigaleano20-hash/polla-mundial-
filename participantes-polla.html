@@ -337,6 +337,7 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#1e1e30;
 <nav>
   <button class="tab-btn active" onclick="showTab('tabla',this)">🏆 Tabla</button>
   <button class="tab-btn" onclick="showTab('podio',this)">🎖️ Podio</button>
+  <button class="tab-btn" onclick="showTab('pronosticos',this)">🔒 Pronósticos</button>
   <button class="tab-btn" onclick="showTab('premios',this)">💰 Premios</button>
   <button class="tab-btn" onclick="showTab('reglas',this)">📋 Reglas</button>
 </nav>
@@ -427,6 +428,11 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#1e1e30;
     </div>
   </div>
 
+  <!-- PRONÓSTICOS PÚBLICOS -->
+  <div id="sec-pronosticos" class="section">
+    <div id="pron-container"></div>
+  </div>
+
 </main>
 
 <!-- BOTTOM BAR -->
@@ -439,7 +445,7 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#1e1e30;
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAPq-PtYroZ5ZRHpJajZLj2ixD0b_IPh3Q",
@@ -463,6 +469,58 @@ const esc  = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/
 const ini  = p => p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 
 let players = [];
+let allPredictions = {};   // { participantId: {picks, name, updatedAt} }
+
+// ── REVEAL DATE: Mundial starts June 11 2026 ──
+const REVEAL_DATE = new Date('2026-06-11T00:00:00-05:00');
+
+// ── MATCH LIST for displaying predictions (groups + KO) ──
+const ALL_MATCHES = [
+  [1,'🇲🇽','México','🇿🇦','Sudáfrica'],[2,'🇰🇷','Corea del Sur','🇨🇿','Rep. Checa'],
+  [3,'🇨🇦','Canadá','🇧🇦','Bosnia y Herz.'],[4,'🇺🇸','EE.UU.','🇵🇾','Paraguay'],
+  [5,'🇶🇦','Qatar','🇨🇭','Suiza'],[6,'🇧🇷','Brasil','🇲🇦','Marruecos'],
+  [7,'🇭🇹','Haití','🏴󠁧󠁢󠁳󠁣󠁴󠁿','Escocia'],[8,'🇦🇺','Australia','🇹🇷','Turquía'],
+  [9,'🇩🇪','Alemania','🇨🇼','Curazao'],[10,'🇳🇱','Países Bajos','🇯🇵','Japón'],
+  [11,'🇨🇮','Costa de Marfil','🇪🇨','Ecuador'],[12,'🇸🇪','Suecia','🇹🇳','Túnez'],
+  [13,'🇪🇸','España','🇨🇻','Cabo Verde'],[14,'🇧🇪','Bélgica','🇪🇬','Egipto'],
+  [15,'🇸🇦','Arabia Saudita','🇺🇾','Uruguay'],[16,'🇮🇷','Irán','🇳🇿','Nueva Zelanda'],
+  [17,'🇫🇷','Francia','🇸🇳','Senegal'],[18,'🇮🇶','Irak','🇳🇴','Noruega'],
+  [19,'🇦🇷','Argentina','🇩🇿','Argelia'],[20,'🇦🇹','Austria','🇯🇴','Jordania'],
+  [21,'🇵🇹','Portugal','🇨🇩','R.D. Congo'],[22,'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Inglaterra','🇭🇷','Croacia'],
+  [23,'🇬🇭','Ghana','🇵🇦','Panamá'],[24,'🇺🇿','Uzbekistán','🇨🇴','Colombia'],
+  [25,'🇨🇿','Rep. Checa','🇿🇦','Sudáfrica'],[26,'🇨🇭','Suiza','🇧🇦','Bosnia y Herz.'],
+  [27,'🇨🇦','Canadá','🇶🇦','Qatar'],[28,'🇲🇽','México','🇰🇷','Corea del Sur'],
+  [29,'🇺🇸','EE.UU.','🇦🇺','Australia'],[30,'🏴󠁧󠁢󠁳󠁣󠁴󠁿','Escocia','🇲🇦','Marruecos'],
+  [31,'🇧🇷','Brasil','🇭🇹','Haití'],[32,'🇹🇷','Turquía','🇵🇾','Paraguay'],
+  [33,'🇳🇱','Países Bajos','🇸🇪','Suecia'],[34,'🇩🇪','Alemania','🇨🇮','Costa de Marfil'],
+  [35,'🇪🇨','Ecuador','🇨🇼','Curazao'],[36,'🇹🇳','Túnez','🇯🇵','Japón'],
+  [37,'🇪🇸','España','🇸🇦','Arabia Saudita'],[38,'🇧🇪','Bélgica','🇮🇷','Irán'],
+  [39,'🇺🇾','Uruguay','🇨🇻','Cabo Verde'],[40,'🇳🇿','Nueva Zelanda','🇪🇬','Egipto'],
+  [41,'🇦🇷','Argentina','🇦🇹','Austria'],[42,'🇫🇷','Francia','🇮🇶','Irak'],
+  [43,'🇳🇴','Noruega','🇸🇳','Senegal'],[44,'🇯🇴','Jordania','🇩🇿','Argelia'],
+  [45,'🇵🇹','Portugal','🇺🇿','Uzbekistán'],[46,'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Inglaterra','🇬🇭','Ghana'],
+  [47,'🇵🇦','Panamá','🇭🇷','Croacia'],[48,'🇨🇴','Colombia','🇨🇩','R.D. Congo'],
+  [49,'🇨🇭','Suiza','🇨🇦','Canadá'],[50,'🇧🇦','Bosnia y Herz.','🇶🇦','Qatar'],
+  [51,'🏴󠁧󠁢󠁳󠁣󠁴󠁿','Escocia','🇧🇷','Brasil'],[52,'🇲🇦','Marruecos','🇭🇹','Haití'],
+  [53,'🇨🇿','Rep. Checa','🇲🇽','México'],[54,'🇿🇦','Sudáfrica','🇰🇷','Corea del Sur'],
+  [55,'🇪🇨','Ecuador','🇩🇪','Alemania'],[56,'🇨🇼','Curazao','🇨🇮','Costa de Marfil'],
+  [57,'🇹🇳','Túnez','🇳🇱','Países Bajos'],[58,'🇯🇵','Japón','🇸🇪','Suecia'],
+  [59,'🇹🇷','Turquía','🇺🇸','EE.UU.'],[60,'🇵🇾','Paraguay','🇦🇺','Australia'],
+  [61,'🇳🇴','Noruega','🇫🇷','Francia'],[62,'🇸🇳','Senegal','🇮🇶','Irak'],
+  [63,'🇺🇾','Uruguay','🇪🇸','España'],[64,'🇨🇻','Cabo Verde','🇸🇦','Arabia Saudita'],
+  [65,'🇳🇿','Nueva Zelanda','🇧🇪','Bélgica'],[66,'🇪🇬','Egipto','🇮🇷','Irán'],
+  [67,'🇵🇦','Panamá','🏴󠁧󠁢󠁥󠁮󠁧󠁿','Inglaterra'],[68,'🇭🇷','Croacia','🇬🇭','Ghana'],
+  [69,'🇨🇴','Colombia','🇵🇹','Portugal'],[70,'🇨🇩','R.D. Congo','🇺🇿','Uzbekistán'],
+  [71,'🇯🇴','Jordania','🇦🇷','Argentina'],[72,'🇩🇿','Argelia','🇦🇹','Austria'],
+];
+
+// Listen to all predictions
+onSnapshot(collection(db,'pronosticos'), snap => {
+  allPredictions = {};
+  snap.forEach(d => allPredictions[d.id] = d.data());
+  if(document.getElementById('sec-pronosticos').classList.contains('show')) renderPublicPredictions();
+});
+
 
 onSnapshot(doc(db,'polla','participantes'), snap => {
   if(snap.exists()){
@@ -594,6 +652,143 @@ window.showTab = (id, btn) => {
   btn.classList.add('active');
   if(id==='podio')   renderPodio();
   if(id==='premios') renderPremios();
+  if(id==='pronosticos') renderPublicPredictions();
+};
+
+// ── PUBLIC PREDICTIONS (transparency) ──
+function renderPublicPredictions(){
+  const cont = document.getElementById('pron-container');
+  const now = new Date();
+  const revealed = now >= REVEAL_DATE;
+
+  // BEFORE REVEAL: locked message
+  if(!revealed){
+    const dias = Math.ceil((REVEAL_DATE - now) / (1000*60*60*24));
+    cont.innerHTML = `
+      <div style="text-align:center;padding:50px 24px">
+        <div style="font-size:60px;margin-bottom:16px">🔒</div>
+        <div style="font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:3px;color:#F59E0B;margin-bottom:12px">PRONÓSTICOS SELLADOS</div>
+        <div style="font-size:14px;color:#888;line-height:1.7;max-width:420px;margin:0 auto 20px">
+          Por transparencia y para evitar que alguien copie, los pronósticos de los
+          participantes permanecen <strong style="color:#fff">ocultos hasta el inicio del Mundial</strong>.
+        </div>
+        <div style="display:inline-block;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);
+             border-radius:12px;padding:14px 24px">
+          <div style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Se revelan el</div>
+          <div style="font-family:'Bebas Neue',cursive;font-size:22px;color:#F59E0B;letter-spacing:2px">11 JUNIO 2026</div>
+          <div style="font-size:12px;color:#4ade80;margin-top:6px">⏳ Faltan ${dias} día${dias!==1?'s':''}</div>
+        </div>
+        <div style="font-size:12px;color:#555;margin-top:24px;max-width:440px;margin-left:auto;margin-right:auto;line-height:1.6">
+          🔐 Una vez revelados, quedarán visibles para todos con la <strong>fecha y hora exacta</strong>
+          del último guardado de cada participante, garantizando que nadie los modificó después del cierre.
+        </div>
+      </div>`;
+    return;
+  }
+
+  // AFTER REVEAL: show all predictions
+  const sorted = [...players].sort((a,b)=>(b.pts||0)-(a.pts||0));
+  let html = `
+    <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.25);border-radius:12px;
+         padding:14px 16px;margin-bottom:18px;font-size:12px;color:#86efac;line-height:1.6">
+      🔓 <strong>Pronósticos revelados.</strong> Estos son los pronósticos que cada participante
+      registró antes del inicio del Mundial. La fecha de guardado garantiza que no fueron modificados.
+    </div>
+    <input id="pron-search" placeholder="🔍  Buscar participante..." oninput="filterPronList(this.value)"
+       style="width:100%;padding:11px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+       border-radius:10px;color:#f0f0f0;font-size:14px;margin-bottom:14px;font-family:'Barlow',sans-serif;outline:none"/>
+    <div id="pron-list">`;
+
+  sorted.forEach(player => {
+    const pred = allPredictions[String(player.id)];
+    const picks = pred ? (pred.picks||{}) : {};
+    const filled = Object.values(picks).filter(p => p && ((p.h!==undefined&&p.a!==undefined)||(p.score1!==undefined&&p.score2!==undefined))).length;
+    let ts = '';
+    if(pred && pred.updatedAt){
+      const d = new Date(pred.updatedAt);
+      ts = d.toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    }
+    const initials = (player.name.match(/\b\w/g)||['?']).slice(0,2).join('').toUpperCase();
+
+    html += `
+      <div class="pron-player" data-name="${esc(player.name).toLowerCase()}"
+           style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;margin-bottom:10px;overflow:hidden">
+        <div onclick="togglePron('${player.id}')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#fbbf24);
+               display:flex;align-items:center;justify-content:center;color:#0a0a0f;font-family:'Bebas Neue',cursive;
+               font-size:15px;flex-shrink:0">${initials}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700;color:#f0f0f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(player.name)}</div>
+            <div style="font-size:11px;color:#666">${filled} pronósticos ${ts?'· guardado '+ts:''}</div>
+          </div>
+          <span id="arrow-${player.id}" style="color:#F59E0B;font-size:14px;transition:transform .2s">▼</span>
+        </div>
+        <div id="picks-${player.id}" style="display:none;padding:0 16px 14px"></div>
+      </div>`;
+  });
+  html += '</div>';
+  cont.innerHTML = html;
+}
+
+window.togglePron = function(pid){
+  const box = document.getElementById('picks-'+pid);
+  const arrow = document.getElementById('arrow-'+pid);
+  if(box.style.display === 'none'){
+    // Render picks lazily
+    const pred = allPredictions[String(pid)];
+    const picks = pred ? (pred.picks||{}) : {};
+    let inner = '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;display:grid;gap:4px">';
+    if(Object.keys(picks).length === 0){
+      inner += '<div style="text-align:center;color:#666;font-size:12px;padding:10px">Sin pronósticos registrados</div>';
+    } else {
+      ALL_MATCHES.forEach(m => {
+        const [num,fl1,n1,fl2,n2] = m;
+        const p = picks[num];
+        if(!p || p.h===undefined || p.a===undefined) return;
+        inner += `
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;background:rgba(0,0,0,.2);border-radius:6px">
+            <span style="color:#555;width:22px">${num}</span>
+            <span style="flex:1;text-align:right;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n1} ${fl1}</span>
+            <span style="background:rgba(245,158,11,.15);color:#F59E0B;padding:1px 7px;border-radius:5px;font-weight:700;font-family:'Bebas Neue',cursive;letter-spacing:1px">${p.h} - ${p.a}</span>
+            <span style="flex:1;text-align:left;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fl2} ${n2}</span>
+          </div>`;
+      });
+      // KO predictions
+      const koPicks = Object.keys(picks).filter(k => parseInt(k) > 72);
+      if(koPicks.length){
+        inner += '<div style="margin-top:8px;font-size:10px;color:#F59E0B;letter-spacing:1px;text-transform:uppercase;font-weight:700;padding:4px 8px">🏆 Eliminatorias</div>';
+        koPicks.sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
+          const p = picks[num];
+          if(!p || !p.pickedSide || p.score1===undefined) return;
+          const t1 = p.team1Name || ('Equipo 1');
+          const t2 = p.team2Name || ('Equipo 2');
+          const winner = p.pickedSide === '1' ? t1 : t2;
+          inner += `
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;background:rgba(251,191,36,.06);border-radius:6px">
+              <span style="color:#555;width:28px">M${num}</span>
+              <span style="flex:1;text-align:right;color:#ddd">${esc(t1)}</span>
+              <span style="background:rgba(245,158,11,.15);color:#F59E0B;padding:1px 7px;border-radius:5px;font-weight:700;font-family:'Bebas Neue',cursive">${p.score1} - ${p.score2}</span>
+              <span style="flex:1;text-align:left;color:#ddd">${esc(t2)}</span>
+              <span style="font-size:9px;color:#4ade80;white-space:nowrap">✓ ${esc(winner)}</span>
+            </div>`;
+        });
+      }
+    }
+    inner += '</div>';
+    box.innerHTML = inner;
+    box.style.display = 'block';
+    arrow.style.transform = 'rotate(180deg)';
+  } else {
+    box.style.display = 'none';
+    arrow.style.transform = 'rotate(0deg)';
+  }
+};
+
+window.filterPronList = function(q){
+  q = q.toLowerCase();
+  document.querySelectorAll('.pron-player').forEach(el => {
+    el.style.display = el.dataset.name.includes(q) ? 'block' : 'none';
+  });
 };
 </script>
 </body>
