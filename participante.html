@@ -121,6 +121,8 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
   border-radius:12px;padding:14px 16px;margin-bottom:10px;transition:all .2s;
   display:flex;align-items:center;gap:10px}
 .match.filled{background:rgba(245,158,11,.04);border-color:rgba(245,158,11,.25)}
+.match.locked-match{background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.2);opacity:.75}
+.match.locked-match .score-in{cursor:not-allowed;opacity:.6}
 .match-info{display:flex;align-items:center;gap:8px;flex-shrink:0;min-width:80px}
 .match-num{font-family:'Bebas Neue',cursive;font-size:16px;color:#666;width:24px;text-align:center}
 .match-meta{display:flex;flex-direction:column;gap:1px}
@@ -404,7 +406,12 @@ const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
 // ── Deadline: June 11 2026 00:00 (lock day before)
-const DEADLINE = new Date('2026-06-11T00:00:00-05:00');
+// ── Plazos:
+// • Global: hasta el 11 jun 9:00 PM hora Colombia (cierre general)
+// • Excepción: partido #1 (México vs Sudáfrica) cierra el 11 jun 11:00 AM (antes del inaugural)
+const DEADLINE = new Date('2026-06-11T21:00:00-05:00');
+const INAUGURAL_DEADLINE = new Date('2026-06-11T11:00:00-05:00');
+const INAUGURAL_MATCH = 1; // match # 1 = México vs Sudáfrica
 
 // ── 72 GROUP MATCHES ───────────────────────────────────────────────
 const MATCHES = [
@@ -572,7 +579,8 @@ let participantName = null;
 let participantCode = null;
 let predictions = {}; // { matchNum: {h: 2, a: 1} } for groups; { M73: {team:'México', score:2, oppTeam:'Brasil', oppScore:1} } for KO
 let originalPredictions = {};
-let isLocked = false;
+let isLocked = false;          // global lock (after 11 jun 9pm)
+let isInauguralLocked = false; // only match #1 locked (after 11 jun 11am)
 let phasesOpen = {'16':false,'8':false,'4':false,'2':false,'3p':false,'F':false}; // KO phases unlock states
 
 // ── UTILITIES ──
@@ -631,8 +639,10 @@ async function loadAndStart(){
   } catch(e){ predictions = {}; }
   originalPredictions = JSON.parse(JSON.stringify(predictions));
 
-  // Check deadline
-  isLocked = new Date() >= DEADLINE;
+  // Check deadlines
+  const now = new Date();
+  isLocked = now >= DEADLINE;
+  isInauguralLocked = now >= INAUGURAL_DEADLINE;
 
   // Show app
   $('login-screen').style.display = 'none';
@@ -648,7 +658,11 @@ async function loadAndStart(){
     $('tb-status').classList.add('locked');
     $('tb-status-text').textContent = 'Cerrada';
     $('deadline-card').classList.add('locked');
-    $('deadline-card').innerHTML = '🔒 <strong>Pronósticos bloqueados.</strong> El plazo cerró el 10 Jun 23:59. Ya no puedes editar.';
+    $('deadline-card').innerHTML = '🔒 <strong>Pronósticos cerrados.</strong> El plazo terminó el 11 Jun 9:00 PM. Ya no puedes editar.';
+  } else if(isInauguralLocked){
+    $('deadline-card').innerHTML = '⚠️ <strong>Partido inaugural bloqueado.</strong> Aún puedes editar el resto hasta el <strong>11 Jun 9:00 PM</strong>.';
+  } else {
+    $('deadline-card').innerHTML = '⏰ <strong>Cierre de pronósticos:</strong> 11 Junio 2026 · 9:00 PM Colombia · El partido inaugural cierra a las 11:00 AM.';
   }
 
   renderAllMatches();
@@ -854,11 +868,14 @@ function renderAllMatches(){
         card.className = 'match';
         const p = predictions[num];
         if(p && p.h !== undefined && p.a !== undefined) card.classList.add('filled');
+        // Match-specific lock: inaugural (match #1) locks at 11am, all others at 9pm
+        const matchLocked = isLocked || (num === INAUGURAL_MATCH && isInauguralLocked);
+        if(matchLocked) card.classList.add('locked-match');
         card.innerHTML = `
           <div class="match-info">
             <span class="match-num">${num}</span>
             <div class="match-meta">
-              <span class="match-date">${_date}</span>
+              <span class="match-date">${_date}${num === INAUGURAL_MATCH ? ' <span style="color:#f87171">🔒 inaugural</span>' : ''}</span>
               <span class="match-group-tag">Grupo ${grp}</span>
             </div>
           </div>
@@ -866,10 +883,10 @@ function renderAllMatches(){
             <div class="team"><span class="team-flag">${fl1}</span><span class="team-nm">${escHtml(n1)}</span></div>
             <div class="score-pair">
               <input class="score-in ${p&&p.h!==undefined?'has-value':''}" type="number" min="0" max="20" inputmode="numeric"
-                     data-num="${num}" data-side="h" value="${p&&p.h!==undefined?p.h:''}" ${isLocked?'disabled':''}/>
+                     data-num="${num}" data-side="h" value="${p&&p.h!==undefined?p.h:''}" ${matchLocked?'disabled':''}/>
               <span class="score-dash">–</span>
               <input class="score-in ${p&&p.a!==undefined?'has-value':''}" type="number" min="0" max="20" inputmode="numeric"
-                     data-num="${num}" data-side="a" value="${p&&p.a!==undefined?p.a:''}" ${isLocked?'disabled':''}/>
+                     data-num="${num}" data-side="a" value="${p&&p.a!==undefined?p.a:''}" ${matchLocked?'disabled':''}/>
             </div>
             <div class="team right"><span class="team-nm">${escHtml(n2)}</span><span class="team-flag">${fl2}</span></div>
           </div>
@@ -887,6 +904,11 @@ function renderAllMatches(){
 
 function onScoreChange(e){
   const num = parseInt(e.target.dataset.num);
+  // Block changes if globally locked OR if this is the inaugural match and it's past its deadline
+  if(isLocked || (num === INAUGURAL_MATCH && isInauguralLocked)){
+    e.target.disabled = true;
+    return;
+  }
   const side = e.target.dataset.side;
   let val = e.target.value.trim();
   if(val === '') {

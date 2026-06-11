@@ -658,41 +658,15 @@ window.showTab = (id, btn) => {
 // ── PUBLIC PREDICTIONS (transparency) ──
 function renderPublicPredictions(){
   const cont = document.getElementById('pron-container');
-  const now = new Date();
-  const revealed = now >= REVEAL_DATE;
 
-  // BEFORE REVEAL: locked message
-  if(!revealed){
-    const dias = Math.ceil((REVEAL_DATE - now) / (1000*60*60*24));
-    cont.innerHTML = `
-      <div style="text-align:center;padding:50px 24px">
-        <div style="font-size:60px;margin-bottom:16px">🔒</div>
-        <div style="font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:3px;color:#F59E0B;margin-bottom:12px">PRONÓSTICOS SELLADOS</div>
-        <div style="font-size:14px;color:#888;line-height:1.7;max-width:420px;margin:0 auto 20px">
-          Por transparencia y para evitar que alguien copie, los pronósticos de los
-          participantes permanecen <strong style="color:#fff">ocultos hasta el inicio del Mundial</strong>.
-        </div>
-        <div style="display:inline-block;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);
-             border-radius:12px;padding:14px 24px">
-          <div style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Se revelan el</div>
-          <div style="font-family:'Bebas Neue',cursive;font-size:22px;color:#F59E0B;letter-spacing:2px">11 JUNIO 2026</div>
-          <div style="font-size:12px;color:#4ade80;margin-top:6px">⏳ Faltan ${dias} día${dias!==1?'s':''}</div>
-        </div>
-        <div style="font-size:12px;color:#555;margin-top:24px;max-width:440px;margin-left:auto;margin-right:auto;line-height:1.6">
-          🔐 Una vez revelados, quedarán visibles para todos con la <strong>fecha y hora exacta</strong>
-          del último guardado de cada participante, garantizando que nadie los modificó después del cierre.
-        </div>
-      </div>`;
-    return;
-  }
-
-  // AFTER REVEAL: show all predictions
+  // Show all predictions (always public for transparency)
   const sorted = [...players].sort((a,b)=>(b.pts||0)-(a.pts||0));
   let html = `
     <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.25);border-radius:12px;
          padding:14px 16px;margin-bottom:18px;font-size:12px;color:#86efac;line-height:1.6">
-      🔓 <strong>Pronósticos revelados.</strong> Estos son los pronósticos que cada participante
-      registró antes del inicio del Mundial. La fecha de guardado garantiza que no fueron modificados.
+      🔓 <strong>Pronósticos públicos.</strong> Estos son los pronósticos guardados por cada participante.
+      La fecha y hora del último guardado queda visible para garantizar que nadie modificó nada después del cierre.
+    </div>
     </div>
     <input id="pron-search" placeholder="🔍  Buscar participante..." oninput="filterPronList(this.value)"
        style="width:100%;padding:11px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
