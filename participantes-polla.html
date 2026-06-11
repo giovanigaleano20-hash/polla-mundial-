@@ -319,10 +319,6 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#1e1e30;
       <div class="stat-lbl">Cupos</div>
     </div>
     <div class="stat-box">
-      <div class="stat-val accent" id="st-recaudado">—</div>
-      <div class="stat-lbl">Recaudado</div>
-    </div>
-    <div class="stat-box">
       <div class="stat-val green" id="st-premios">—</div>
       <div class="stat-lbl">En premios</div>
     </div>
@@ -552,9 +548,8 @@ function updateHeader(){
   const sorted = [...players].sort((a,b)=>b.pts-a.pts);
   const lider  = sorted[0];
   document.getElementById('st-cupos').textContent    = paid + '/30';
-  document.getElementById('st-recaudado').textContent = fmt(rec);
-  document.getElementById('st-premios').textContent   = fmt(rec * .75);
-  document.getElementById('st-lider').textContent     = lider && lider.pts > 0
+  document.getElementById('st-premios').textContent  = fmt(rec * .75);
+  document.getElementById('st-lider').textContent    = lider && lider.pts > 0
     ? lider.name.split(' ').slice(0,2).join(' ') : '—';
 }
 
