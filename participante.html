@@ -804,8 +804,8 @@ function renderKO(){
       const [mid, date, venue, label1, label2, kickoffISO] = m;
       const card = document.createElement('div');
       card.className = 'ko-match';
-      const p = predictions[mid] || {};
-      const filled = p.team && p.opp && p.score !== undefined && p.oppScore !== undefined;
+      const p = predictions[String(mid)] || predictions[mid] || {};
+      const filled = p.pickedSide && p.score1 !== undefined && p.score2 !== undefined;
       if(filled) card.classList.add('filled');
 
       // Check if this individual match is locked (kickoff has started)
@@ -813,10 +813,6 @@ function renderKO(){
       const matchKickoff = kickoffISO ? new Date(kickoffISO) : null;
       const matchLocked = matchKickoff && now >= matchKickoff;
       if(matchLocked) card.classList.add('ko-locked');
-
-      const pick = p.team || ''; // which side is picked: stores the team name
-      const team1Picked = p.team && p.team === (p.team1Label || label1);
-      const team2Picked = p.team && p.team === (p.team2Label || label2);
 
       // Determine if team labels are placeholders (start with "Ganador" or "Perdedor" or contain "Grupo")
       const isPlaceholder = lbl => /^(Ganador|Perdedor|\d+|2do|3ro|1ro)/.test(lbl);
