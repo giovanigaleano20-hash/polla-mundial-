@@ -163,6 +163,9 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
 .ko-match{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
   border-radius:12px;padding:14px;margin-bottom:12px;transition:all .2s}
 .ko-match.filled{background:rgba(245,158,11,.04);border-color:rgba(245,158,11,.25)}
+.ko-match.ko-locked{background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.2);opacity:.7}
+.ko-match.ko-locked .ko-team-row{cursor:not-allowed}
+.ko-match.ko-locked .ko-score-in,.ko-match.ko-locked .ko-team-input{cursor:not-allowed;opacity:.6}
 .ko-match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
   font-size:11px;color:#888;letter-spacing:.5px}
 .ko-match-venue{color:#666;font-style:italic;font-size:10px}
@@ -504,22 +507,23 @@ const KO_PHASES = [
     title: 'DIECISEISAVOS DE FINAL',
     sub: '28 Jun al 3 Jul · 16 partidos',
     matches: [
-      [73,'28 Jun','Los Angeles','🇿🇦 Sudáfrica','🇨🇦 Canadá'],
-      [74,'29 Jun','Houston','🇧🇷 Brasil','🇯🇵 Japón'],
-      [75,'29 Jun','Boston','🇩🇪 Alemania','🇵🇾 Paraguay'],
-      [76,'29 Jun','Monterrey','🇳🇱 Países Bajos','🇲🇦 Marruecos'],
-      [77,'30 Jun','Dallas','🇨🇮 Costa de Marfil','🇳🇴 Noruega'],
-      [78,'30 Jun','Nueva York','🇫🇷 Francia','🇸🇪 Suecia'],
-      [79,'30 Jun','Ciudad de México','🇲🇽 México','🇪🇨 Ecuador'],
-      [80,'1 Jul','Atlanta','🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra','🇨🇩 R.D. Congo'],
-      [81,'1 Jul','Seattle','🇧🇪 Bélgica','🇸🇳 Senegal'],
-      [82,'1 Jul','San Francisco','🇺🇸 EE.UU.','🇧🇦 Bosnia'],
-      [83,'2 Jul','Toronto','🇵🇹 Portugal','🇭🇷 Croacia'],
-      [84,'2 Jul','Los Angeles','🇪🇸 España','🇦🇹 Austria'],
-      [85,'2 Jul','Vancouver','🇨🇭 Suiza','🇩🇿 Argelia'],
-      [86,'3 Jul','Dallas','🇦🇺 Australia','🇪🇬 Egipto'],
-      [87,'3 Jul','Miami','🇦🇷 Argentina','🇨🇻 Cabo Verde'],
-      [88,'3 Jul','Kansas City','🇨🇴 Colombia','🇬🇭 Ghana'],
+      // Format: [num, date, venue, team1, team2, kickoffISO]
+      [73,'28 Jun','Los Angeles','🇿🇦 Sudáfrica','🇨🇦 Canadá','2026-06-28T14:00:00-05:00'],
+      [74,'29 Jun','Houston','🇧🇷 Brasil','🇯🇵 Japón','2026-06-29T12:00:00-05:00'],
+      [75,'29 Jun','Boston','🇩🇪 Alemania','🇵🇾 Paraguay','2026-06-29T15:30:00-05:00'],
+      [76,'29 Jun','Monterrey','🇳🇱 Países Bajos','🇲🇦 Marruecos','2026-06-29T20:00:00-05:00'],
+      [77,'30 Jun','Dallas','🇨🇮 Costa de Marfil','🇳🇴 Noruega','2026-06-30T12:00:00-05:00'],
+      [78,'30 Jun','Nueva York','🇫🇷 Francia','🇸🇪 Suecia','2026-06-30T16:00:00-05:00'],
+      [79,'30 Jun','Ciudad de México','🇲🇽 México','🇪🇨 Ecuador','2026-06-30T20:00:00-05:00'],
+      [80,'1 Jul','Atlanta','🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra','🇨🇩 R.D. Congo','2026-07-01T15:00:00-05:00'],
+      [81,'1 Jul','Seattle','🇧🇪 Bélgica','🇸🇳 Senegal','2026-07-01T18:00:00-05:00'],
+      [82,'1 Jul','San Francisco','🇺🇸 EE.UU.','🇧🇦 Bosnia','2026-07-01T21:00:00-05:00'],
+      [83,'2 Jul','Toronto','🇵🇹 Portugal','🇭🇷 Croacia','2026-07-02T18:00:00-05:00'],
+      [84,'2 Jul','Los Angeles','🇪🇸 España','🇦🇹 Austria','2026-07-02T14:00:00-05:00'],
+      [85,'2 Jul','Vancouver','🇨🇭 Suiza','🇩🇿 Argelia','2026-07-02T22:00:00-05:00'],
+      [86,'3 Jul','Dallas','🇦🇺 Australia','🇪🇬 Egipto','2026-07-03T13:00:00-05:00'],
+      [87,'3 Jul','Miami','🇦🇷 Argentina','🇨🇻 Cabo Verde','2026-07-03T17:00:00-05:00'],
+      [88,'3 Jul','Kansas City','🇨🇴 Colombia','🇬🇭 Ghana','2026-07-03T20:30:00-05:00'],
     ]
   },
   {
@@ -668,6 +672,11 @@ async function loadAndStart(){
   updateProgress();
   listenForResults();
   listenPhases();
+
+  // Auto-refresh KO render every minute to apply kickoff locks in real-time
+  setInterval(() => {
+    if(document.getElementById('sec-ko').classList.contains('show')) renderKO();
+  }, 60000);
 }
 
 // ── LISTEN FOR PHASE UNLOCK ──
@@ -727,12 +736,18 @@ function renderKO(){
 
     // Matches
     phase.matches.forEach(m => {
-      const [mid, date, venue, label1, label2] = m;
+      const [mid, date, venue, label1, label2, kickoffISO] = m;
       const card = document.createElement('div');
       card.className = 'ko-match';
       const p = predictions[mid] || {};
       const filled = p.team && p.opp && p.score !== undefined && p.oppScore !== undefined;
       if(filled) card.classList.add('filled');
+
+      // Check if this individual match is locked (kickoff has started)
+      const now = new Date();
+      const matchKickoff = kickoffISO ? new Date(kickoffISO) : null;
+      const matchLocked = matchKickoff && now >= matchKickoff;
+      if(matchLocked) card.classList.add('ko-locked');
 
       const pick = p.team || ''; // which side is picked: stores the team name
       const team1Picked = p.team && p.team === (p.team1Label || label1);
@@ -743,27 +758,29 @@ function renderKO(){
       const ph1 = isPlaceholder(label1);
       const ph2 = isPlaceholder(label2);
 
+      const lockBadge = matchLocked ? '<span style="background:rgba(248,113,113,.15);color:#f87171;font-size:9px;padding:2px 7px;border-radius:5px;font-weight:700;letter-spacing:.5px;margin-left:6px">🔒 BLOQUEADO</span>' : '';
+
       card.innerHTML = `
         <div class="ko-match-top">
-          <span class="ko-match-id">${mid}</span>
+          <span class="ko-match-id">${mid}${lockBadge}</span>
           <span class="ko-match-venue">${date} · ${venue}</span>
         </div>
         <div class="ko-team-row ${p.pickedSide==='1'?'picked':''}" data-mid="${mid}" data-side="1">
           <div class="ko-radio"></div>
           ${ph1
-            ? `<input class="ko-team-input" placeholder="${label1}" data-mid="${mid}" data-field="team1Name" value="${escHtml(p.team1Name||'')}"/>`
+            ? `<input class="ko-team-input" placeholder="${label1}" data-mid="${mid}" data-field="team1Name" value="${escHtml(p.team1Name||'')}" ${matchLocked?'disabled':''}/>`
             : `<span class="ko-team-name">${label1}</span>`}
           <input class="ko-score-in ${p.score1!==undefined?'has-value':''}" type="number" min="0" max="20" inputmode="numeric"
-                 data-mid="${mid}" data-side="1" value="${p.score1!==undefined?p.score1:''}" placeholder="-"/>
+                 data-mid="${mid}" data-side="1" value="${p.score1!==undefined?p.score1:''}" placeholder="-" ${matchLocked?'disabled':''}/>
         </div>
         <div class="ko-vs">VS</div>
         <div class="ko-team-row ${p.pickedSide==='2'?'picked':''}" data-mid="${mid}" data-side="2">
           <div class="ko-radio"></div>
           ${ph2
-            ? `<input class="ko-team-input" placeholder="${label2}" data-mid="${mid}" data-field="team2Name" value="${escHtml(p.team2Name||'')}"/>`
+            ? `<input class="ko-team-input" placeholder="${label2}" data-mid="${mid}" data-field="team2Name" value="${escHtml(p.team2Name||'')}" ${matchLocked?'disabled':''}/>`
             : `<span class="ko-team-name">${label2}</span>`}
           <input class="ko-score-in ${p.score2!==undefined?'has-value':''}" type="number" min="0" max="20" inputmode="numeric"
-                 data-mid="${mid}" data-side="2" value="${p.score2!==undefined?p.score2:''}" placeholder="-"/>
+                 data-mid="${mid}" data-side="2" value="${p.score2!==undefined?p.score2:''}" placeholder="-" ${matchLocked?'disabled':''}/>
         </div>
       `;
       wrap.appendChild(card);
@@ -772,6 +789,19 @@ function renderKO(){
     cont.appendChild(wrap);
   });
 
+  // Helper: check if a specific KO match is locked by kickoff time
+  function isKOMatchLocked(mid){
+    for(const phase of KO_PHASES){
+      for(const m of phase.matches){
+        if(m[0] == mid){
+          const ko = m[5];
+          if(ko && new Date() >= new Date(ko)) return true;
+        }
+      }
+    }
+    return false;
+  }
+
   // Attach listeners
   cont.querySelectorAll('.ko-team-row').forEach(row => {
     row.addEventListener('click', e => {
@@ -779,6 +809,7 @@ function renderKO(){
       if(e.target.tagName === 'INPUT') return;
       if(isLocked) return;
       const mid = row.dataset.mid;
+      if(isKOMatchLocked(mid)) return; // block if past kickoff
       const side = row.dataset.side;
       if(!predictions[mid]) predictions[mid] = {};
       predictions[mid].pickedSide = side;
@@ -794,6 +825,7 @@ function renderKO(){
   cont.querySelectorAll('.ko-score-in').forEach(inp => {
     inp.addEventListener('input', e => {
       const mid = e.target.dataset.mid;
+      if(isLocked || isKOMatchLocked(mid)){ e.target.disabled = true; return; }
       const side = e.target.dataset.side;
       const val = e.target.value.trim();
       if(!predictions[mid]) predictions[mid] = {};
@@ -815,6 +847,7 @@ function renderKO(){
   cont.querySelectorAll('.ko-team-input').forEach(inp => {
     inp.addEventListener('input', e => {
       const mid = e.target.dataset.mid;
+      if(isLocked || isKOMatchLocked(mid)){ e.target.disabled = true; return; }
       const field = e.target.dataset.field;
       if(!predictions[mid]) predictions[mid] = {};
       predictions[mid][field] = e.target.value;
