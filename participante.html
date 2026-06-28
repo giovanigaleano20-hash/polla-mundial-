@@ -651,7 +651,12 @@ async function loadAndStart(){
   try {
     const pSnap = await getDoc(doc(db,'pronosticos', String(participantId)));
     predictions = pSnap.exists() ? (pSnap.data().picks || {}) : {};
-  } catch(e){ predictions = {}; }
+    const cnt = Object.keys(predictions).length;
+    console.log('📥 Cargados ' + cnt + ' pronósticos de Firebase para ' + participantName + ':', predictions);
+  } catch(e){
+    console.error('❌ Error cargando pronósticos:', e);
+    predictions = {};
+  }
   originalPredictions = JSON.parse(JSON.stringify(predictions));
 
   // Check deadline
@@ -1090,12 +1095,20 @@ function updateSaveBar(){
 
 // ── MANUAL SAVE (botón GUARDAR) ──
 window.saveAll = async function(){
-  if(!hasChanges()) return;
+  if(!hasChanges()) {
+    toast('ℹ️ No hay cambios para guardar', true);
+    return;
+  }
   const btn = $('save-btn');
   btn.classList.add('saving');
   btn.disabled = true;
   $('save-btn-text').textContent = 'GUARDANDO...';
   const snapshot = JSON.parse(JSON.stringify(predictions));
+
+  // DEBUG: log what we're sending
+  const keysCount = Object.keys(snapshot).length;
+  console.log('📤 Guardando ' + keysCount + ' pronósticos para ' + participantName + ':', snapshot);
+
   try {
     await setDoc(doc(db,'pronosticos', String(participantId)), {
       picks: snapshot,
@@ -1103,15 +1116,24 @@ window.saveAll = async function(){
       code: participantCode,
       updatedAt: new Date().toISOString(),
     });
+
+    // VERIFY: read back immediately to confirm save worked
+    const verify = await getDoc(doc(db,'pronosticos', String(participantId)));
+    const savedData = verify.exists() ? verify.data() : null;
+    const savedKeys = savedData && savedData.picks ? Object.keys(savedData.picks).length : 0;
+    console.log('✅ Verificación post-guardado: ' + savedKeys + ' pronósticos en Firebase');
+
     originalPredictions = snapshot;
     btn.classList.remove('saving');
-    toast('✅ Guardado correctamente');
+    toast('✅ Guardado: ' + keysCount + ' pronósticos sincronizados');
     updateSaveBar();
   } catch(e) {
     btn.classList.remove('saving');
     btn.disabled = false;
     $('save-btn-text').textContent = 'REINTENTAR';
+    console.error('❌ ERROR al guardar:', e);
     toast('❌ Error: ' + e.message, true);
+    alert('Error al guardar:\n\n' + e.message + '\n\nCódigo: ' + (e.code||'desconocido') + '\n\nPor favor toma una captura y envíasela al organizador.');
   }
 };
 
