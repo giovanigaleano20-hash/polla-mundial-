@@ -167,9 +167,19 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
 .ko-match.ko-locked .ko-team-row{cursor:not-allowed}
 .ko-match.ko-locked .ko-score-in,.ko-match.ko-locked .ko-team-input{cursor:not-allowed;opacity:.6}
 .ko-match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
+  flex-wrap:wrap;gap:6px;
   font-size:11px;color:#888;letter-spacing:.5px}
 .ko-match-venue{color:#666;font-style:italic;font-size:10px}
 .ko-match-id{font-family:'Bebas Neue',cursive;color:#F59E0B;font-size:14px;letter-spacing:1px}
+.ko-countdown{display:inline-flex;align-items:center;gap:4px;font-size:10px;
+  background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.3);
+  border-radius:10px;padding:2px 8px;font-weight:700;letter-spacing:.3px;
+  font-family:'Barlow',sans-serif;white-space:nowrap}
+.ko-countdown.urgent{background:rgba(245,158,11,.12);color:#F59E0B;border-color:rgba(245,158,11,.35)}
+.ko-countdown.critical{background:rgba(248,113,113,.15);color:#f87171;border-color:rgba(248,113,113,.4);
+  animation:pulse-warn 1.2s ease-in-out infinite}
+.ko-countdown.locked{background:rgba(75,85,99,.15);color:#9ca3af;border-color:rgba(75,85,99,.3)}
+@keyframes pulse-warn{0%,100%{opacity:1}50%{opacity:.55}}
 .ko-team-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
   background:rgba(0,0,0,.2);margin-bottom:6px;cursor:pointer;transition:all .15s;
   border:2px solid transparent;-webkit-tap-highlight-color:transparent}
@@ -659,10 +669,7 @@ async function loadAndStart(){
   $('info-code').textContent = participantCode;
 
   if(isLocked){
-    $('tb-status').classList.add('locked');
-    $('tb-status-text').textContent = 'Cerrada';
-    $('deadline-card').classList.add('locked');
-    $('deadline-card').innerHTML = '🔒 <strong>Pronósticos cerrados definitivamente.</strong> El plazo terminó el 12 Jun 8:00 PM.';
+    $('deadline-card').innerHTML = '⚽ <strong>Fase de grupos cerrada.</strong> En las <strong>eliminatorias</strong>, el pronóstico de cada partido se cierra <strong>justo al pitazo inicial</strong>. ¡Apúrate antes de que empiece cada uno!';
   } else {
     $('deadline-card').innerHTML = '🎁 <strong>Última oportunidad de edición:</strong> hasta el <strong>12 Jun 8:00 PM</strong> Colombia (antes del USA vs Paraguay). Los 3 primeros partidos ya jugados están bloqueados.';
   }
@@ -677,6 +684,59 @@ async function loadAndStart(){
   setInterval(() => {
     if(document.getElementById('sec-ko').classList.contains('show')) renderKO();
   }, 60000);
+
+  // Live countdown updater — runs every second to refresh time-to-kickoff badges
+  setInterval(updateCountdowns, 1000);
+  updateCountdowns();
+}
+
+function updateCountdowns(){
+  const cont = document.getElementById('sec-ko');
+  if(!cont || !cont.classList.contains('show')) return;
+  const now = Date.now();
+  cont.querySelectorAll('.ko-countdown').forEach(el => {
+    const koISO = el.dataset.kickoff;
+    if(!koISO) return;
+    const ko = new Date(koISO).getTime();
+    const diff = ko - now;
+
+    // Already started → locked
+    if(diff <= 0){
+      el.classList.remove('urgent','critical');
+      el.classList.add('locked');
+      el.querySelector('.cd-icon').textContent = '🔒';
+      el.querySelector('.cd-text').textContent = 'Cerrado';
+      return;
+    }
+
+    // Calculate breakdown
+    const totalSec = Math.floor(diff/1000);
+    const days = Math.floor(totalSec/86400);
+    const hours = Math.floor((totalSec%86400)/3600);
+    const mins = Math.floor((totalSec%3600)/60);
+    const secs = totalSec%60;
+
+    // Style by urgency
+    el.classList.remove('locked','urgent','critical');
+    let label, icon = '⏱';
+    if(diff <= 15*60*1000){           // ≤ 15 min: critical (red pulse)
+      el.classList.add('critical');
+      icon = '⚠️';
+      label = `${mins}:${String(secs).padStart(2,'0')} para cierre`;
+    } else if(diff <= 60*60*1000){    // ≤ 1h: urgent (gold)
+      el.classList.add('urgent');
+      icon = '⏰';
+      label = `${mins} min para cierre`;
+    } else if(days > 0){
+      label = `Cierra en ${days}d ${hours}h`;
+    } else if(hours > 0){
+      label = `Cierra en ${hours}h ${mins}m`;
+    } else {
+      label = `Cierra en ${mins} min`;
+    }
+    el.querySelector('.cd-icon').textContent = icon;
+    el.querySelector('.cd-text').textContent = label;
+  });
 }
 
 // ── LISTEN FOR PHASE UNLOCK ──
@@ -759,11 +819,15 @@ function renderKO(){
       const ph2 = isPlaceholder(label2);
 
       const lockBadge = matchLocked ? '<span style="background:rgba(248,113,113,.15);color:#f87171;font-size:9px;padding:2px 7px;border-radius:5px;font-weight:700;letter-spacing:.5px;margin-left:6px">🔒 BLOQUEADO</span>' : '';
+      const countdownEl = kickoffISO
+        ? `<span class="ko-countdown" data-kickoff="${kickoffISO}" data-mid="${mid}"><span class="cd-icon">⏱</span><span class="cd-text">--</span></span>`
+        : '';
 
       card.innerHTML = `
         <div class="ko-match-top">
           <span class="ko-match-id">${mid}${lockBadge}</span>
           <span class="ko-match-venue">${date} · ${venue}</span>
+          ${countdownEl}
         </div>
         <div class="ko-team-row ${p.pickedSide==='1'?'picked':''}" data-mid="${mid}" data-side="1">
           <div class="ko-radio"></div>
@@ -856,6 +920,9 @@ function renderKO(){
       updateSaveBar();
     });
   });
+
+  // Initial countdown render
+  if(typeof updateCountdowns === 'function') updateCountdowns();
 }
 
 function checkKOFilled(mid, card){
