@@ -389,12 +389,12 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
 
   <div class="save-bar" id="save-bar">
     <div class="save-info">
-      <div class="save-info-main" id="save-info-main">Sin cambios</div>
-      <div class="save-info-sub" id="save-info-sub">Todos tus pronósticos están guardados</div>
+      <div class="save-info-main" id="save-info-main">✓ Guardado automático activo</div>
+      <div class="save-info-sub" id="save-info-sub">Cada cambio se guarda al instante</div>
     </div>
-    <button class="save-btn" id="save-btn" onclick="saveAll()" disabled>
+    <button class="save-btn saved" id="save-btn" onclick="saveAll()" title="Forzar guardado">
       <span class="save-spinner"></span>
-      <span id="save-btn-text">GUARDAR</span>
+      <span id="save-btn-text">✓ AUTO</span>
     </button>
   </div>
 
@@ -1067,49 +1067,87 @@ function hasChanges(){
   return JSON.stringify(predictions) !== JSON.stringify(originalPredictions);
 }
 
+let autoSaveTimer = null;
+let isSaving = false;
+
 function updateSaveBar(){
   const btn = $('save-btn');
   const main = $('save-info-main');
   const sub = $('save-info-sub');
-  if(hasChanges()){
-    btn.disabled = false;
+  if(isSaving){
+    btn.classList.add('saving');
     btn.classList.remove('saved');
-    $('save-btn-text').textContent = 'GUARDAR';
-    main.textContent = '⚠️ Tienes cambios sin guardar';
-    sub.textContent = 'Toca GUARDAR para enviar a tu polla';
+    $('save-btn-text').textContent = 'GUARDANDO';
+    main.textContent = '💾 Guardando automáticamente...';
+    sub.textContent = 'Tus cambios se están sincronizando';
+  } else if(hasChanges()){
+    btn.classList.remove('saved','saving');
+    $('save-btn-text').textContent = 'PENDIENTE';
+    main.textContent = '⏳ Cambios detectados';
+    sub.textContent = 'Se guardará automáticamente en 1 segundo...';
   } else {
-    btn.disabled = true;
     btn.classList.add('saved');
-    $('save-btn-text').textContent = 'GUARDADO';
-    main.textContent = '✓ Todo guardado';
-    sub.textContent = 'Sincronizado correctamente';
+    btn.classList.remove('saving');
+    $('save-btn-text').textContent = '✓ AUTO';
+    main.textContent = '✓ Todo guardado automáticamente';
+    sub.textContent = 'Tus pronósticos están sincronizados';
+  }
+
+  // Trigger debounced auto-save when there are changes
+  if(hasChanges() && !isSaving){
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => autoSave(), 800);
   }
 }
 
-// ── SAVE ──
-window.saveAll = async function(){
-  const btn = $('save-btn');
-  btn.classList.add('saving');
-  btn.disabled = true;
-  $('save-btn-text').textContent = 'GUARDANDO...';
+// ── AUTO SAVE (no button needed) ──
+async function autoSave(){
+  if(isSaving) return;
+  if(!hasChanges()) return;
+  isSaving = true;
+  updateSaveBar();
+  // Capture snapshot at moment of save to detect new changes during request
+  const snapshot = JSON.parse(JSON.stringify(predictions));
   try {
     await setDoc(doc(db,'pronosticos', String(participantId)), {
-      picks: predictions,
+      picks: snapshot,
       name: participantName,
       code: participantCode,
       updatedAt: new Date().toISOString(),
     });
-    originalPredictions = JSON.parse(JSON.stringify(predictions));
-    btn.classList.remove('saving');
-    toast('✅ Pronósticos guardados con éxito');
+    originalPredictions = snapshot;
+    isSaving = false;
+    toast('💾 Guardado automático ✓');
     updateSaveBar();
+    // If new changes happened during save, trigger another save
+    if(hasChanges()){
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => autoSave(), 800);
+    }
   } catch(e) {
-    btn.classList.remove('saving');
-    btn.disabled = false;
-    $('save-btn-text').textContent = 'REINTENTAR';
-    toast('❌ Error: ' + e.message, true);
+    isSaving = false;
+    toast('❌ Error al guardar: ' + e.message + ' (reintentando...)', true);
+    // Retry after 3 seconds
+    setTimeout(() => { if(hasChanges()) autoSave(); }, 3000);
   }
+}
+
+// Keep saveAll for compatibility (clicking the indicator triggers a manual save)
+window.saveAll = async function(){
+  if(isSaving) return;
+  if(hasChanges()) await autoSave();
 };
+
+// Save on tab close / page unload if there are pending changes
+window.addEventListener('beforeunload', e => {
+  if(hasChanges()){
+    // Try a sync save (best effort) — modern browsers don't allow blocking
+    autoSave();
+    e.preventDefault();
+    e.returnValue = 'Tienes cambios sin guardar. ¿Salir de todas formas?';
+    return e.returnValue;
+  }
+});
 
 // ── LISTEN FOR RESULTS (for live points) ──
 function listenForResults(){
