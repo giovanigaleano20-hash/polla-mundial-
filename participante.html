@@ -680,12 +680,8 @@ async function loadAndStart(){
   listenForResults();
   listenPhases();
 
-  // Auto-refresh KO render every minute to apply kickoff locks in real-time
-  setInterval(() => {
-    if(document.getElementById('sec-ko').classList.contains('show')) renderKO();
-  }, 60000);
-
   // Live countdown updater — runs every second to refresh time-to-kickoff badges
+  // and applies kickoff locks to inputs WITHOUT re-rendering (preserves focus)
   setInterval(updateCountdowns, 1000);
   updateCountdowns();
 }
@@ -696,9 +692,13 @@ function updateCountdowns(){
   const now = Date.now();
   cont.querySelectorAll('.ko-countdown').forEach(el => {
     const koISO = el.dataset.kickoff;
+    const mid = el.dataset.mid;
     if(!koISO) return;
     const ko = new Date(koISO).getTime();
     const diff = ko - now;
+
+    // Find the parent card to apply lock state
+    const card = el.closest('.ko-match');
 
     // Already started → locked
     if(diff <= 0){
@@ -706,6 +706,11 @@ function updateCountdowns(){
       el.classList.add('locked');
       el.querySelector('.cd-icon').textContent = '🔒';
       el.querySelector('.cd-text').textContent = 'Cerrado';
+      // Apply lock to inputs without re-rendering
+      if(card && !card.classList.contains('ko-locked')){
+        card.classList.add('ko-locked');
+        card.querySelectorAll('.ko-score-in, .ko-team-input').forEach(inp => inp.disabled = true);
+      }
       return;
     }
 
