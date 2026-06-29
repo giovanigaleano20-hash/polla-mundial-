@@ -869,7 +869,17 @@ function renderKO(){
 
 function checkKOFilled(mid, card){
   const p = predictions[mid] || {};
-  const ok = p.pickedSide && p.score1 !== undefined && p.score2 !== undefined;
+  // Un pronóstico KO está completo con solo los 2 marcadores.
+  // El ganador (pickedSide) se infiere del marcador automáticamente.
+  const hasScores = p.score1 !== undefined && p.score2 !== undefined;
+  if(hasScores){
+    // Inferir pickedSide del marcador si no hay empate
+    const s1 = Number(p.score1), s2 = Number(p.score2);
+    if(s1 > s2) p.pickedSide = '1';
+    else if(s2 > s1) p.pickedSide = '2';
+    // si es empate, dejar el pickedSide que el usuario haya elegido manualmente (si lo hizo)
+  }
+  const ok = hasScores;
   if(ok) card.classList.add('filled');
   else card.classList.remove('filled');
   updateProgress();
@@ -997,7 +1007,7 @@ function updateProgress(){
     phase.matches.forEach(m => {
       koTotal++;
       const p = predictions[m[0]];
-      if(p && p.pickedSide && p.score1 !== undefined && p.score2 !== undefined) koFilled++;
+      if(p && p.score1 !== undefined && p.score2 !== undefined) koFilled++;
     });
   });
 

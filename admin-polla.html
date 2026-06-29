@@ -1665,19 +1665,25 @@ async function recalcularPuntos(){
         // KO match: {pickedSide: '1'|'2', score1, score2}
         const s1 = Number(pk.score1);
         const s2 = Number(pk.score2);
-        if(isNaN(s1) || isNaN(s2) || !pk.pickedSide) return;
-        // Exact score → +3 (regardless of winner side, since at 90' a tie is valid)
+        // Solo requiere los marcadores. El pickedSide se infiere del marcador si no existe.
+        if(isNaN(s1) || isNaN(s2)) return;
+
+        // Determinar el lado ganador SEGÚN EL MARCADOR del participante
+        // (si escribió 2-1, el ganador es lado 1; si 0-2, lado 2; si empate, no hay)
+        let predictedWinnerSide = s1 > s2 ? '1' : (s1 < s2 ? '2' : null);
+        // Si el participante marcó explícitamente un lado Y su marcador no es empate, respetarlo
+        if(pk.pickedSide && s1 !== s2) predictedWinnerSide = pk.pickedSide;
+
+        // Marcador exacto → +3
         if(s1 === rh && s2 === ra){
           pts += 3;
           breakdown.push(`KO${num}=+3(exacto)`);
           return;
         }
-        // Winner side match → +1
-        // PERO solo si el marcador del participante es coherente (no empate):
-        // si escribió un empate pero marcó un ganador, es incoherente → 0 puntos
+        // Ganador correcto → +1 (siempre que el marcador del participante no sea empate)
         const pickedScoreIsTie = (s1 === s2);
         const realWinnerSide = rh > ra ? '1' : (rh < ra ? '2' : null);
-        if(realWinnerSide && pk.pickedSide === realWinnerSide && !pickedScoreIsTie){
+        if(realWinnerSide && predictedWinnerSide === realWinnerSide && !pickedScoreIsTie){
           pts += 1;
           breakdown.push(`KO${num}=+1(ganador)`);
         }
