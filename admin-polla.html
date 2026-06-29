@@ -436,6 +436,7 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#444;
   <button class="tab-btn" onclick="showTab('pronosticos',this)">🎯 Pronósticos</button>
   <button class="tab-btn" onclick="showTab('resultados',this)">⚽ Resultados</button>
   <button class="tab-btn" onclick="showTab('fases',this)">🏆 Fases KO</button>
+  <button class="tab-btn" onclick="showTab('grupos',this)">📅 Fase Grupos</button>
   <button class="tab-btn" onclick="showTab('premios',this)">💰 Premios</button>
   <button class="tab-btn" onclick="showTab('reglas',this)">📋 Puntos</button>
   <button class="tab-btn" onclick="showTab('caja',this)">💵 Caja</button>
@@ -550,6 +551,24 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#444;
       <strong style="color:#f87171">Importante:</strong> ciérralos justo antes del pitazo inicial de cada uno.</p>
     <div id="partidos-manuales" style="display:grid;gap:8px"></div>
     <p class="hint">💡 Toca el botón para alternar entre abierto/cerrado. El estado se sincroniza con todos los participantes al instante.</p>
+  </div>
+
+  <!-- FASE GRUPOS -->
+  <div id="sec-grupos" class="section">
+    <div class="section-title">📅 Control de Fase de Grupos</div>
+    <p class="prize-note">Cierra los partidos de la fase de grupos individualmente. Los participantes ya no podrán editar esos pronósticos.<br>
+      <strong style="color:#f87171">Útil para:</strong> bloquear partidos ya jugados o que están por comenzar.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+      <span style="font-size:12px;color:#888">Filtrar:</span>
+      <button class="export-btn" onclick="filtrarGrupos('todos',this)" id="fg-todos" style="background:#F59E0B;color:#0a0a0f">Todos</button>
+      <button class="export-btn" onclick="filtrarGrupos('J1',this)" id="fg-J1">Jornada 1</button>
+      <button class="export-btn" onclick="filtrarGrupos('J2',this)" id="fg-J2">Jornada 2</button>
+      <button class="export-btn" onclick="filtrarGrupos('J3',this)" id="fg-J3">Jornada 3</button>
+      <button class="export-btn" onclick="cerrarTodosGrupos()" style="background:#f87171;color:#fff">🔒 Cerrar TODOS los grupos</button>
+      <button class="export-btn" onclick="abrirTodosGrupos()" style="background:#4ade80;color:#0a0a0f">🟢 Abrir TODOS los grupos</button>
+    </div>
+    <div id="partidos-grupos" style="display:grid;gap:8px"></div>
+    <p class="hint">💡 Toca el botón individual para alternar abierto/cerrado, o usa los botones masivos para cerrar/abrir todos a la vez.</p>
   </div>
 
   <!-- PREMIOS -->
@@ -779,6 +798,7 @@ window.showTab = (id, btn) => {
   if(id==='resultados') renderResultados();
   if(id==='pronosticos') renderPronosticos();
   if(id==='fases') renderFases();
+  if(id==='grupos') renderPartidosGrupos();
 };
 
 // ── PREMIOS ──
@@ -1480,10 +1500,113 @@ window.toggleMatchLock = async function(matchNum){
     const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
     await setDoc(doc(db,'polla','config'), {lockedMatches, updatedAt: new Date().toISOString()}, {merge:true});
     renderPartidosManuales();
+    if(document.getElementById('sec-grupos').classList.contains('show')) renderPartidosGrupos();
     showToast(isClosed ? `🟢 Partido M${matchNum} reabierto` : `🔒 Partido M${matchNum} cerrado`);
   } catch(e){
     lockedMatches[matchNum] = prev;
     renderPartidosManuales();
+    showToast('❌ Error: '+e.message, true);
+  }
+};
+
+// ── GROUP MATCHES MANUAL LOCK ──
+let gruposFilter = 'todos';
+
+window.filtrarGrupos = function(f, btn){
+  gruposFilter = f;
+  document.querySelectorAll('[id^="fg-"]').forEach(b => { b.style.background='transparent'; b.style.color='#F59E0B'; });
+  btn.style.background = '#F59E0B'; btn.style.color = '#0a0a0f';
+  renderPartidosGrupos();
+};
+
+window.renderPartidosGrupos = function(){
+  const cont = document.getElementById('partidos-grupos');
+  if(!cont) return;
+  cont.innerHTML = '';
+
+  // Filter group matches only (m[2] starts with 'J')
+  let list = MATCHES.filter(m => m[2] === 'J1' || m[2] === 'J2' || m[2] === 'J3');
+  if(gruposFilter === 'J1') list = list.filter(m => m[2] === 'J1');
+  else if(gruposFilter === 'J2') list = list.filter(m => m[2] === 'J2');
+  else if(gruposFilter === 'J3') list = list.filter(m => m[2] === 'J3');
+
+  let currentDate = null;
+  list.forEach(m => {
+    const [num, date, jor, grp, fl1, n1, fl2, n2] = m;
+    // Date header
+    if(date !== currentDate){
+      currentDate = date;
+      const hdr = document.createElement('div');
+      hdr.style.cssText = `font-size:11px;color:#F59E0B;font-weight:700;letter-spacing:1.5px;
+        margin:12px 0 4px;padding:6px 12px;background:rgba(245,158,11,.08);
+        border-left:3px solid #F59E0B;border-radius:5px`;
+      hdr.textContent = `📅 ${date}  ·  ${jor === 'J1' ? 'Jornada 1' : jor === 'J2' ? 'Jornada 2' : 'Jornada 3'}`;
+      cont.appendChild(hdr);
+    }
+
+    const isClosed = lockedMatches[num] === true;
+    const card = document.createElement('div');
+    card.style.cssText = `display:flex;align-items:center;gap:10px;padding:10px 14px;
+      background:${isClosed?'rgba(248,113,113,.06)':'rgba(74,222,128,.04)'};
+      border:1px solid ${isClosed?'rgba(248,113,113,.25)':'rgba(74,222,128,.2)'};
+      border-radius:8px`;
+    card.innerHTML = `
+      <span style="font-family:'Bebas Neue',cursive;font-size:14px;color:${isClosed?'#f87171':'#4ade80'};width:30px;text-align:center">${num}</span>
+      <span style="font-size:10px;color:#888;width:50px">${date}</span>
+      <span style="font-size:10px;background:rgba(245,158,11,.1);color:#F59E0B;padding:2px 6px;border-radius:4px;font-weight:700">${grp}</span>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#ddd;min-width:0;overflow:hidden">
+        <span style="font-size:14px">${fl1}</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n1}</span>
+        <span style="color:#666;font-size:9px">vs</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n2}</span>
+        <span style="font-size:14px">${fl2}</span>
+      </div>
+      <span style="font-size:9px;padding:2px 8px;border-radius:10px;letter-spacing:.5px;font-weight:700;
+        background:${isClosed?'rgba(248,113,113,.15)':'rgba(74,222,128,.15)'};
+        color:${isClosed?'#f87171':'#4ade80'};
+        border:1px solid ${isClosed?'rgba(248,113,113,.3)':'rgba(74,222,128,.3)'};white-space:nowrap">
+        ${isClosed?'🔒 CERRADO':'🟢 ABIERTO'}
+      </span>
+      <button onclick="toggleMatchLock(${num})" style="background:${isClosed?'transparent':'#f87171'};
+        color:${isClosed?'#4ade80':'#fff'};
+        border:1px solid ${isClosed?'rgba(74,222,128,.4)':'#f87171'};
+        border-radius:6px;padding:5px 10px;font-family:'Bebas Neue',cursive;font-size:11px;
+        letter-spacing:1px;cursor:pointer;white-space:nowrap">
+        ${isClosed?'🟢 ABRIR':'🔒 CERRAR'}
+      </button>
+    `;
+    cont.appendChild(card);
+  });
+};
+
+window.cerrarTodosGrupos = async function(){
+  if(!confirm('¿Cerrar TODOS los 72 partidos de la fase de grupos? Esto bloquea la edición de todos esos pronósticos para los participantes.')) return;
+  const groupNumbers = MATCHES.filter(m => m[2] === 'J1' || m[2] === 'J2' || m[2] === 'J3').map(m => m[0]);
+  const prev = {...lockedMatches};
+  groupNumbers.forEach(n => { lockedMatches[n] = true; });
+  try {
+    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(doc(db,'polla','config'), {lockedMatches, updatedAt: new Date().toISOString()}, {merge:true});
+    renderPartidosGrupos();
+    showToast(`🔒 ${groupNumbers.length} partidos de grupos cerrados`);
+  } catch(e){
+    lockedMatches = prev;
+    showToast('❌ Error: '+e.message, true);
+  }
+};
+
+window.abrirTodosGrupos = async function(){
+  if(!confirm('¿Abrir TODOS los 72 partidos de la fase de grupos? Los participantes podrán editarlos de nuevo.')) return;
+  const groupNumbers = MATCHES.filter(m => m[2] === 'J1' || m[2] === 'J2' || m[2] === 'J3').map(m => m[0]);
+  const prev = {...lockedMatches};
+  groupNumbers.forEach(n => { delete lockedMatches[n]; });
+  try {
+    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(doc(db,'polla','config'), {lockedMatches, updatedAt: new Date().toISOString()}, {merge:true});
+    renderPartidosGrupos();
+    showToast(`🟢 ${groupNumbers.length} partidos de grupos reabiertos`);
+  } catch(e){
+    lockedMatches = prev;
     showToast('❌ Error: '+e.message, true);
   }
 };

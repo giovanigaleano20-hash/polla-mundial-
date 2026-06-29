@@ -677,7 +677,36 @@ function listenPhases(){
       const data = snap.data();
       phasesOpen = {...phasesOpen, ...(data.phasesOpen||{})};
       lockedMatches = data.lockedMatches || {};
-      renderKO();
+      // Only re-render if user has no unsaved edits (avoid wiping what they're typing)
+      if(!hasChanges()){
+        renderKO();
+        renderAllMatches();
+      } else {
+        // Has pending edits: just apply lock states by disabling inputs directly
+        applyLocksWithoutRerender();
+      }
+    }
+  });
+}
+
+// Apply lock states to existing inputs WITHOUT re-rendering (preserves typing)
+function applyLocksWithoutRerender(){
+  // Group matches
+  document.querySelectorAll('#sec-j1 .score-in, #sec-j2 .score-in, #sec-j3 .score-in').forEach(inp => {
+    const num = parseInt(inp.dataset.num);
+    if(lockedMatches[num] === true || LOCKED_MATCHES.includes(num)){
+      inp.disabled = true;
+      const card = inp.closest('.match');
+      if(card) card.classList.add('locked-match');
+    }
+  });
+  // KO matches
+  document.querySelectorAll('#sec-ko .ko-score-in, #sec-ko .ko-team-input').forEach(inp => {
+    const mid = inp.dataset.mid;
+    if(lockedMatches[mid] === true){
+      inp.disabled = true;
+      const card = inp.closest('.ko-match');
+      if(card) card.classList.add('ko-locked');
     }
   });
 }
@@ -879,14 +908,17 @@ function renderAllMatches(){
         card.className = 'match';
         const p = predictions[num];
         if(p && p.h !== undefined && p.a !== undefined) card.classList.add('filled');
-        // Match-specific lock: matches already played (#1, #2, #3) are locked
-        const matchLocked = isLocked || LOCKED_MATCHES.includes(num);
+        // Match-specific lock: matches already played (#1, #2, #3) OR closed manually by admin
+        const matchLocked = isLocked || LOCKED_MATCHES.includes(num) || lockedMatches[num] === true;
         if(matchLocked) card.classList.add('locked-match');
+        const lockBadge = lockedMatches[num] === true && !LOCKED_MATCHES.includes(num)
+          ? ' <span style="color:#f87171">🔒 cerrado</span>'
+          : '';
         card.innerHTML = `
           <div class="match-info">
             <span class="match-num">${num}</span>
             <div class="match-meta">
-              <span class="match-date">${_date}${LOCKED_MATCHES.includes(num) ? ' <span style="color:#f87171">🔒 jugado</span>' : ''}</span>
+              <span class="match-date">${_date}${LOCKED_MATCHES.includes(num) ? ' <span style="color:#f87171">🔒 jugado</span>' : lockBadge}</span>
               <span class="match-group-tag">Grupo ${grp}</span>
             </div>
           </div>
@@ -915,8 +947,8 @@ function renderAllMatches(){
 
 function onScoreChange(e){
   const num = parseInt(e.target.dataset.num);
-  // Block changes if globally locked OR if this match is one of the already-played ones
-  if(isLocked || LOCKED_MATCHES.includes(num)){
+  // Block changes if match is already-played OR closed manually by admin
+  if(isLocked || LOCKED_MATCHES.includes(num) || lockedMatches[num] === true){
     e.target.disabled = true;
     return;
   }
