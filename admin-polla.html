@@ -706,7 +706,7 @@ function scheduleSave(){
 onSnapshot(doc(db,'polla','participantes'), snap => {
   if(snap.exists()){
     const data = snap.data();
-    if(data.players && editingId === null){
+    if(data.players && editingId === null && !isRecalcSaving){
       players = data.players;
       renderAll();
     }
@@ -1058,6 +1058,7 @@ const MATCHES = [
 
 let results = {};        // {matchNum: {h, a}}
 let resFilter = 'todos';
+let isRecalcSaving = false; // true while recalcularPuntos is saving (prevents listener clobber)
 
 import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(fs => {
   // Listen to results doc
@@ -1633,6 +1634,8 @@ window.togglePhase = async function(phaseId){
 
 async function recalcularPuntos(){
   await loadPredictions();
+  // Guard: don't run if players not loaded yet
+  if(!players || players.length === 0) return;
   let changed = false;
   let totalDebug = []; // for debugging
   players = players.map(p => {
@@ -1670,8 +1673,11 @@ async function recalcularPuntos(){
           return;
         }
         // Winner side match → +1
+        // PERO solo si el marcador del participante es coherente (no empate):
+        // si escribió un empate pero marcó un ganador, es incoherente → 0 puntos
+        const pickedScoreIsTie = (s1 === s2);
         const realWinnerSide = rh > ra ? '1' : (rh < ra ? '2' : null);
-        if(realWinnerSide && pk.pickedSide === realWinnerSide){
+        if(realWinnerSide && pk.pickedSide === realWinnerSide && !pickedScoreIsTie){
           pts += 1;
           breakdown.push(`KO${num}=+1(ganador)`);
         }
@@ -1685,20 +1691,69 @@ async function recalcularPuntos(){
     console.log('🧮 Recálculo de puntos:\n' + totalDebug.join('\n'));
   }
   if(changed){
-    saveToFirebase();
+    isRecalcSaving = true; // prevent listener from clobbering
+    await saveToFirebase();
+    isRecalcSaving = false;
     renderTabla();
   }
 }
 
 window.forzarRecalculo = async function(){
   showToast('🔄 Recalculando puntos para todos los participantes...');
+  await loadPredictions();
+
+  // DIAGNÓSTICO COMPLETO
+  let diag = [];
+  diag.push('=== DIAGNÓSTICO DE PUNTOS ===\n');
+
+  // 1. ¿Cuántos resultados hay ingresados?
+  const resultKeys = Object.keys(results);
+  const koResults = resultKeys.filter(k => parseInt(k) > 72);
+  const grpResults = resultKeys.filter(k => parseInt(k) <= 72);
+  diag.push(`Resultados ingresados: ${resultKeys.length} total`);
+  diag.push(`  • Grupos: ${grpResults.length} (${grpResults.join(', ')||'ninguno'})`);
+  diag.push(`  • Eliminatorias: ${koResults.length} (${koResults.join(', ')||'ninguno'})`);
+  diag.push('');
+
+  // 2. ¿Cuántos participantes tienen pronósticos guardados?
+  const predIds = Object.keys(allPredictions);
+  diag.push(`Participantes con pronósticos guardados: ${predIds.length}`);
+
+  // 3. Para cada resultado KO, ¿quién tiene pronóstico?
+  if(koResults.length > 0){
+    koResults.forEach(num => {
+      const r = results[num];
+      let conPronostico = 0;
+      predIds.forEach(pid => {
+        const picks = allPredictions[pid] || {};
+        const pk = picks[num] || picks[String(num)];
+        if(pk && pk.pickedSide && pk.score1 !== undefined) conPronostico++;
+      });
+      diag.push(`  KO M${num} (${r.h}-${r.a}): ${conPronostico} participantes con pronóstico`);
+    });
+  } else {
+    diag.push('⚠️ No hay resultados de eliminatorias ingresados todavía.');
+  }
+  diag.push('');
+
+  // Ahora recalcular
   await recalcularPuntos();
-  // Count current state
-  const totalPlayers = players.length;
+
   const playersWithPoints = players.filter(p => (p.pts||0) > 0).length;
-  const topScore = Math.max(...players.map(p => p.pts||0));
-  showToast(`✅ Cálculo completo · ${playersWithPoints}/${totalPlayers} con puntos · líder: ${topScore} pts`);
-  console.log('Revisa la consola arriba (F12) para ver el desglose de puntos por participante');
+  const topScore = Math.max(...players.map(p => p.pts||0), 0);
+  diag.push(`RESULTADO: ${playersWithPoints}/${players.length} con puntos · líder: ${topScore} pts`);
+
+  // Mostrar los que tienen puntos
+  const conPts = players.filter(p => (p.pts||0) > 0).sort((a,b)=>b.pts-a.pts);
+  if(conPts.length > 0){
+    diag.push('\nParticipantes con puntos:');
+    conPts.slice(0,10).forEach(p => diag.push(`  ${p.name}: ${p.pts} pts`));
+  }
+
+  const fullDiag = diag.join('\n');
+  console.log(fullDiag);
+  alert(fullDiag);
+  showToast(`✅ ${playersWithPoints}/${players.length} con puntos · líder: ${topScore} pts`);
 };
 
 // ── INIT ──
