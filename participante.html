@@ -163,23 +163,10 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
 .ko-match{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
   border-radius:12px;padding:14px;margin-bottom:12px;transition:all .2s}
 .ko-match.filled{background:rgba(245,158,11,.04);border-color:rgba(245,158,11,.25)}
-.ko-match.ko-locked{background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.2);opacity:.75}
-.ko-match.ko-locked .ko-score-in,
-.ko-match.ko-locked .ko-team-input{cursor:not-allowed;opacity:.5}
-.ko-match.ko-locked .ko-team-row{cursor:not-allowed}
 .ko-match-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
-  font-size:11px;color:#888;letter-spacing:.5px;flex-wrap:wrap;gap:6px}
-.ko-match-venue{color:#666;font-style:italic;font-size:10px;flex:1;min-width:0}
+  font-size:11px;color:#888;letter-spacing:.5px}
+.ko-match-venue{color:#666;font-style:italic;font-size:10px}
 .ko-match-id{font-family:'Bebas Neue',cursive;color:#F59E0B;font-size:14px;letter-spacing:1px}
-.ko-countdown{display:inline-flex;align-items:center;gap:4px;font-size:10px;
-  background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.3);
-  border-radius:10px;padding:2px 8px;font-weight:700;letter-spacing:.3px;
-  font-family:'Barlow',sans-serif;white-space:nowrap}
-.ko-countdown.urgent{background:rgba(245,158,11,.12);color:#F59E0B;border-color:rgba(245,158,11,.35)}
-.ko-countdown.critical{background:rgba(248,113,113,.15);color:#f87171;border-color:rgba(248,113,113,.4);
-  animation:pulse-warn 1.2s ease-in-out infinite}
-.ko-countdown.locked{background:rgba(75,85,99,.15);color:#9ca3af;border-color:rgba(75,85,99,.3)}
-@keyframes pulse-warn{0%,100%{opacity:1}50%{opacity:.55}}
 .ko-team-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
   background:rgba(0,0,0,.2);margin-bottom:6px;cursor:pointer;transition:all .15s;
   border:2px solid transparent;-webkit-tap-highlight-color:transparent}
@@ -517,23 +504,22 @@ const KO_PHASES = [
     title: 'DIECISEISAVOS DE FINAL',
     sub: '28 Jun al 3 Jul · 16 partidos',
     matches: [
-      // Format: [num, fecha, sede, equipo1, equipo2, kickoffISO_Colombia]
-      [73,'28 Jun','Los Angeles','🇿🇦 Sudáfrica','🇨🇦 Canadá','2026-06-28T14:00:00-05:00'],
-      [74,'29 Jun','Houston','🇧🇷 Brasil','🇯🇵 Japón','2026-06-29T12:00:00-05:00'],
-      [75,'29 Jun','Boston','🇩🇪 Alemania','🇵🇾 Paraguay','2026-06-29T15:30:00-05:00'],
-      [76,'29 Jun','Monterrey','🇳🇱 Países Bajos','🇲🇦 Marruecos','2026-06-29T20:00:00-05:00'],
-      [77,'30 Jun','Dallas','🇨🇮 Costa de Marfil','🇳🇴 Noruega','2026-06-30T12:00:00-05:00'],
-      [78,'30 Jun','Nueva York','🇫🇷 Francia','🇸🇪 Suecia','2026-06-30T16:00:00-05:00'],
-      [79,'30 Jun','Ciudad de México','🇲🇽 México','🇪🇨 Ecuador','2026-06-30T20:00:00-05:00'],
-      [80,'1 Jul','Atlanta','🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra','🇨🇩 R.D. Congo','2026-07-01T15:00:00-05:00'],
-      [81,'1 Jul','Seattle','🇧🇪 Bélgica','🇸🇳 Senegal','2026-07-01T18:00:00-05:00'],
-      [82,'1 Jul','San Francisco','🇺🇸 EE.UU.','🇧🇦 Bosnia y Herz.','2026-07-01T21:00:00-05:00'],
-      [83,'2 Jul','Toronto','🇵🇹 Portugal','🇭🇷 Croacia','2026-07-02T18:00:00-05:00'],
-      [84,'2 Jul','Los Angeles','🇪🇸 España','🇦🇹 Austria','2026-07-02T14:00:00-05:00'],
-      [85,'2 Jul','Vancouver','🇨🇭 Suiza','🇩🇿 Argelia','2026-07-02T22:00:00-05:00'],
-      [86,'3 Jul','Dallas','🇦🇺 Australia','🇪🇬 Egipto','2026-07-03T13:00:00-05:00'],
-      [87,'3 Jul','Miami','🇦🇷 Argentina','🇨🇻 Cabo Verde','2026-07-03T17:00:00-05:00'],
-      [88,'3 Jul','Kansas City','🇨🇴 Colombia','🇬🇭 Ghana','2026-07-03T20:30:00-05:00'],
+      [73,'28 Jun','Los Angeles','2do Grupo A','2do Grupo B'],
+      [74,'29 Jun','Houston','1ro Grupo E','2do Grupo F'],
+      [75,'29 Jun','Boston','1ro Grupo E','3ro Gr. A/B/C/D/F'],
+      [76,'29 Jun','Monterrey','1ro Grupo F','2do Grupo C'],
+      [77,'30 Jun','Dallas','2do Grupo E','2do Grupo I'],
+      [78,'30 Jun','Nueva York','1ro Grupo I','3ro Gr. C/D/F/G/H'],
+      [79,'30 Jun','Ciudad de México','1ro Grupo A','3ro Gr. C/E/F/H/I'],
+      [80,'1 Jul','Atlanta','1ro Grupo L','3ro Gr. E/H/I/J/K'],
+      [81,'1 Jul','Seattle','1ro Grupo G','3ro Gr. A/E/H/I/J'],
+      [82,'1 Jul','San Francisco','1ro Grupo D','3ro Gr. B/E/F/I/J'],
+      [83,'2 Jul','Toronto','2do Grupo K','2do Grupo L'],
+      [84,'2 Jul','Los Angeles','1ro Grupo H','2do Grupo J'],
+      [85,'2 Jul','Vancouver','1ro Grupo B','3ro Gr. E/F/G/I/J'],
+      [86,'3 Jul','Dallas','2do Grupo D','2do Grupo G'],
+      [87,'3 Jul','Miami','1ro Grupo J','2do Grupo H'],
+      [88,'3 Jul','Kansas City','1ro Grupo K','3ro Gr. D/E/I/J/L'],
     ]
   },
   {
@@ -669,7 +655,10 @@ async function loadAndStart(){
   $('info-code').textContent = participantCode;
 
   if(isLocked){
-    $('deadline-card').innerHTML = '⚽ <strong>Fase de grupos cerrada.</strong> En las <strong>eliminatorias</strong>, el pronóstico de cada partido se cierra <strong>1 minuto antes del pitazo inicial</strong>. ¡Apúrate antes de que arranque cada uno!';
+    $('tb-status').classList.add('locked');
+    $('tb-status-text').textContent = 'Cerrada';
+    $('deadline-card').classList.add('locked');
+    $('deadline-card').innerHTML = '🔒 <strong>Pronósticos cerrados definitivamente.</strong> El plazo terminó el 12 Jun 8:00 PM.';
   } else {
     $('deadline-card').innerHTML = '🎁 <strong>Última oportunidad de edición:</strong> hasta el <strong>12 Jun 8:00 PM</strong> Colombia (antes del USA vs Paraguay). Los 3 primeros partidos ya jugados están bloqueados.';
   }
@@ -679,11 +668,6 @@ async function loadAndStart(){
   updateProgress();
   listenForResults();
   listenPhases();
-
-  // Start countdown ticker: updates text only, every second.
-  // Does NOT re-render cards, so users can type freely.
-  tickKOCountdowns();
-  setInterval(tickKOCountdowns, 1000);
 }
 
 // ── LISTEN FOR PHASE UNLOCK ──
@@ -743,37 +727,26 @@ function renderKO(){
 
     // Matches
     phase.matches.forEach(m => {
-      const [mid, date, venue, label1, label2, kickoffISO] = m;
+      const [mid, date, venue, label1, label2] = m;
       const card = document.createElement('div');
       card.className = 'ko-match';
-      const p = predictions[String(mid)] || predictions[mid] || {};
-      const filled = p.pickedSide && p.score1 !== undefined && p.score2 !== undefined;
+      const p = predictions[mid] || {};
+      const filled = p.team && p.opp && p.score !== undefined && p.oppScore !== undefined;
       if(filled) card.classList.add('filled');
+
+      const pick = p.team || ''; // which side is picked: stores the team name
+      const team1Picked = p.team && p.team === (p.team1Label || label1);
+      const team2Picked = p.team && p.team === (p.team2Label || label2);
 
       // Determine if team labels are placeholders (start with "Ganador" or "Perdedor" or contain "Grupo")
       const isPlaceholder = lbl => /^(Ganador|Perdedor|\d+|2do|3ro|1ro)/.test(lbl);
       const ph1 = isPlaceholder(label1);
       const ph2 = isPlaceholder(label2);
 
-      // Format kickoff time for display (hora Colombia)
-      let timeStr = '';
-      if(kickoffISO){
-        const ko = new Date(kickoffISO);
-        const h = ko.getHours();
-        const m2 = ko.getMinutes();
-        timeStr = `${h}:${String(m2).padStart(2,'0')}`;
-      }
-
-      // Countdown placeholder - updated by tickKOCountdowns()
-      const countdownHTML = kickoffISO
-        ? `<span class="ko-countdown" data-kickoff="${kickoffISO}" data-mid="${mid}"><span class="cd-icon">⏱</span><span class="cd-text">--</span></span>`
-        : '';
-
       card.innerHTML = `
         <div class="ko-match-top">
-          <span class="ko-match-id">M${mid}</span>
-          <span class="ko-match-venue">${date}${timeStr?' · '+timeStr+' COL':''} · ${venue}</span>
-          ${countdownHTML}
+          <span class="ko-match-id">${mid}</span>
+          <span class="ko-match-venue">${date} · ${venue}</span>
         </div>
         <div class="ko-team-row ${p.pickedSide==='1'?'picked':''}" data-mid="${mid}" data-side="1">
           <div class="ko-radio"></div>
@@ -806,7 +779,6 @@ function renderKO(){
       if(e.target.tagName === 'INPUT') return;
       if(isLocked) return;
       const mid = row.dataset.mid;
-      if(isKOMatchLocked(mid)) return; // 1 min before kickoff
       const side = row.dataset.side;
       if(!predictions[mid]) predictions[mid] = {};
       predictions[mid].pickedSide = side;
@@ -822,7 +794,6 @@ function renderKO(){
   cont.querySelectorAll('.ko-score-in').forEach(inp => {
     inp.addEventListener('input', e => {
       const mid = e.target.dataset.mid;
-      if(isLocked || isKOMatchLocked(mid)){ e.target.disabled = true; return; }
       const side = e.target.dataset.side;
       const val = e.target.value.trim();
       if(!predictions[mid]) predictions[mid] = {};
@@ -844,7 +815,6 @@ function renderKO(){
   cont.querySelectorAll('.ko-team-input').forEach(inp => {
     inp.addEventListener('input', e => {
       const mid = e.target.dataset.mid;
-      if(isLocked || isKOMatchLocked(mid)){ e.target.disabled = true; return; }
       const field = e.target.dataset.field;
       if(!predictions[mid]) predictions[mid] = {};
       predictions[mid][field] = e.target.value;
@@ -861,86 +831,6 @@ function checkKOFilled(mid, card){
   if(ok) card.classList.add('filled');
   else card.classList.remove('filled');
   updateProgress();
-}
-
-// ── LOCK HELPERS for KO ──
-// Each KO match closes 1 minute BEFORE its kickoff (Colombia time)
-const KO_LOCK_OFFSET_MS = 60 * 1000; // 1 minute before kickoff
-
-function getKOKickoff(mid){
-  for(const phase of KO_PHASES){
-    for(const m of phase.matches){
-      if(String(m[0]) === String(mid)) return m[5] ? new Date(m[5]) : null;
-    }
-  }
-  return null;
-}
-
-function isKOMatchLocked(mid){
-  const ko = getKOKickoff(mid);
-  if(!ko) return false;
-  // Locked when current time >= (kickoff - 1 minute)
-  return Date.now() >= (ko.getTime() - KO_LOCK_OFFSET_MS);
-}
-
-// ── KO COUNTDOWN TICKER ──
-// Updates ONLY the countdown badge text and applies disabled to inputs.
-// Does NOT re-render the cards (so user's typing is never lost).
-function tickKOCountdowns(){
-  const cont = $('sec-ko');
-  if(!cont || !cont.classList.contains('show')) return;
-  const now = Date.now();
-  cont.querySelectorAll('.ko-countdown').forEach(el => {
-    const koISO = el.dataset.kickoff;
-    if(!koISO) return;
-    const ko = new Date(koISO).getTime();
-    const lockAt = ko - KO_LOCK_OFFSET_MS;     // 1 min before kickoff
-    const diff = lockAt - now;                  // ms until lock
-
-    const card = el.closest('.ko-match');
-    const iconEl = el.querySelector('.cd-icon');
-    const textEl = el.querySelector('.cd-text');
-
-    if(diff <= 0){
-      // LOCKED - apply disabled to inputs (only once)
-      if(!card.classList.contains('ko-locked')){
-        card.classList.add('ko-locked');
-        card.querySelectorAll('.ko-score-in, .ko-team-input').forEach(inp => inp.disabled = true);
-      }
-      el.classList.remove('urgent','critical');
-      el.classList.add('locked');
-      iconEl.textContent = '🔒';
-      textEl.textContent = 'CERRADO';
-      return;
-    }
-
-    // Compute breakdown
-    const totalSec = Math.floor(diff/1000);
-    const days = Math.floor(totalSec/86400);
-    const hours = Math.floor((totalSec%86400)/3600);
-    const mins = Math.floor((totalSec%3600)/60);
-    const secs = totalSec%60;
-
-    el.classList.remove('locked','urgent','critical');
-    let label, icon = '⏱';
-    if(diff <= 15*60*1000){          // ≤ 15 min: critical (red pulse, show m:ss)
-      el.classList.add('critical');
-      icon = '⚠️';
-      label = `${mins}:${String(secs).padStart(2,'0')} para cierre`;
-    } else if(diff <= 60*60*1000){    // ≤ 1h: urgent (gold)
-      el.classList.add('urgent');
-      icon = '⏰';
-      label = `${mins} min para cierre`;
-    } else if(days > 0){
-      label = `Cierra en ${days}d ${hours}h`;
-    } else if(hours > 0){
-      label = `Cierra en ${hours}h ${mins}m`;
-    } else {
-      label = `Cierra en ${mins} min`;
-    }
-    iconEl.textContent = icon;
-    textEl.textContent = label;
-  });
 }
 
 // ── RENDER MATCHES ──

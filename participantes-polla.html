@@ -510,41 +510,6 @@ const ALL_MATCHES = [
   [71,'🇯🇴','Jordania','🇦🇷','Argentina'],[72,'🇩🇿','Argelia','🇦🇹','Austria'],
 ];
 
-// ── KO MATCHES INFO ────────────────────────────────────────────────
-// Each KO prediction is REVEALED publicly 5 minutes AFTER its kickoff
-// (so participants can't copy others' picks while the match is still pending)
-const KO_REVEAL_DELAY_MS = 5 * 60 * 1000; // 5 minutes after kickoff
-const KO_MATCHES_INFO = {
-  73: {kickoff:'2026-06-28T14:00:00-05:00', t1:'🇿🇦 Sudáfrica', t2:'🇨🇦 Canadá'},
-  74: {kickoff:'2026-06-29T12:00:00-05:00', t1:'🇧🇷 Brasil', t2:'🇯🇵 Japón'},
-  75: {kickoff:'2026-06-29T15:30:00-05:00', t1:'🇩🇪 Alemania', t2:'🇵🇾 Paraguay'},
-  76: {kickoff:'2026-06-29T20:00:00-05:00', t1:'🇳🇱 Países Bajos', t2:'🇲🇦 Marruecos'},
-  77: {kickoff:'2026-06-30T12:00:00-05:00', t1:'🇨🇮 Costa de Marfil', t2:'🇳🇴 Noruega'},
-  78: {kickoff:'2026-06-30T16:00:00-05:00', t1:'🇫🇷 Francia', t2:'🇸🇪 Suecia'},
-  79: {kickoff:'2026-06-30T20:00:00-05:00', t1:'🇲🇽 México', t2:'🇪🇨 Ecuador'},
-  80: {kickoff:'2026-07-01T15:00:00-05:00', t1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra', t2:'🇨🇩 R.D. Congo'},
-  81: {kickoff:'2026-07-01T18:00:00-05:00', t1:'🇧🇪 Bélgica', t2:'🇸🇳 Senegal'},
-  82: {kickoff:'2026-07-01T21:00:00-05:00', t1:'🇺🇸 EE.UU.', t2:'🇧🇦 Bosnia y Herz.'},
-  83: {kickoff:'2026-07-02T18:00:00-05:00', t1:'🇵🇹 Portugal', t2:'🇭🇷 Croacia'},
-  84: {kickoff:'2026-07-02T14:00:00-05:00', t1:'🇪🇸 España', t2:'🇦🇹 Austria'},
-  85: {kickoff:'2026-07-02T22:00:00-05:00', t1:'🇨🇭 Suiza', t2:'🇩🇿 Argelia'},
-  86: {kickoff:'2026-07-03T13:00:00-05:00', t1:'🇦🇺 Australia', t2:'🇪🇬 Egipto'},
-  87: {kickoff:'2026-07-03T17:00:00-05:00', t1:'🇦🇷 Argentina', t2:'🇨🇻 Cabo Verde'},
-  88: {kickoff:'2026-07-03T20:30:00-05:00', t1:'🇨🇴 Colombia', t2:'🇬🇭 Ghana'},
-};
-
-function isKORevealed(num){
-  const info = KO_MATCHES_INFO[num];
-  if(!info || !info.kickoff) return false;
-  return Date.now() >= (new Date(info.kickoff).getTime() + KO_REVEAL_DELAY_MS);
-}
-
-function getKOLabel(num){
-  const info = KO_MATCHES_INFO[num];
-  if(info) return {t1: info.t1, t2: info.t2};
-  return null;
-}
-
 // Listen to all predictions
 onSnapshot(collection(db,'pronosticos'), snap => {
   allPredictions = {};
@@ -694,9 +659,9 @@ function renderPublicPredictions(){
   let html = `
     <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.25);border-radius:12px;
          padding:14px 16px;margin-bottom:18px;font-size:12px;color:#86efac;line-height:1.6">
-      🔓 <strong>Pronósticos públicos.</strong> Los pronósticos de la fase de grupos están visibles para todos.
-      Los pronósticos de <strong>eliminatorias</strong> se revelan 5 minutos después de iniciado cada partido,
-      para evitar que algún participante pueda copiar al resto.
+      🔓 <strong>Pronósticos públicos.</strong> Estos son los pronósticos guardados por cada participante.
+      La fecha y hora del último guardado queda visible para garantizar que nadie modificó nada después del cierre.
+    </div>
     </div>
     <input id="pron-search" placeholder="🔍  Buscar participante..." oninput="filterPronList(this.value)"
        style="width:100%;padding:11px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
@@ -757,26 +722,15 @@ window.togglePron = function(pid){
             <span style="flex:1;text-align:left;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fl2} ${n2}</span>
           </div>`;
       });
-      // KO predictions — only show those already revealed (5 min after kickoff)
+      // KO predictions
       const koPicks = Object.keys(picks).filter(k => parseInt(k) > 72);
       if(koPicks.length){
         inner += '<div style="margin-top:8px;font-size:10px;color:#F59E0B;letter-spacing:1px;text-transform:uppercase;font-weight:700;padding:4px 8px">🏆 Eliminatorias</div>';
-        let hiddenKO = 0;
         koPicks.sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
           const p = picks[num];
           if(!p || !p.pickedSide || p.score1===undefined) return;
-          const n = parseInt(num);
-
-          // Check if this KO match has been revealed yet
-          if(!isKORevealed(n)){
-            hiddenKO++;
-            return;
-          }
-
-          // Use confirmed labels from KO_MATCHES_INFO if available
-          const info = getKOLabel(n);
-          const t1 = info ? info.t1 : (p.team1Name || 'Equipo 1');
-          const t2 = info ? info.t2 : (p.team2Name || 'Equipo 2');
+          const t1 = p.team1Name || ('Equipo 1');
+          const t2 = p.team2Name || ('Equipo 2');
           const winner = p.pickedSide === '1' ? t1 : t2;
           inner += `
             <div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;background:rgba(251,191,36,.06);border-radius:6px">
@@ -787,11 +741,6 @@ window.togglePron = function(pid){
               <span style="font-size:9px;color:#4ade80;white-space:nowrap">✓ ${esc(winner)}</span>
             </div>`;
         });
-        if(hiddenKO > 0){
-          inner += `<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:8px;background:rgba(75,85,99,.08);border:1px dashed rgba(75,85,99,.3);border-radius:6px;color:#9ca3af;margin-top:4px">
-            🔒 <strong>${hiddenKO}</strong> pronóstico${hiddenKO!==1?'s':''} sellado${hiddenKO!==1?'s':''} (se revela${hiddenKO===1?'':'n'} 5 minutos después de iniciado cada partido)
-          </div>`;
-        }
       }
     }
     inner += '</div>';
