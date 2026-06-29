@@ -645,8 +645,10 @@ async function loadAndStart(){
   originalPredictions = JSON.parse(JSON.stringify(predictions));
 
   // Check deadline
+  // NOTA: ya NO se usa fecha automática de cierre. El admin cierra cada partido manualmente
+  // desde la pestaña "🏆 Fases KO". isLocked queda en false siempre.
   const now = new Date();
-  isLocked = now >= DEADLINE;
+  isLocked = false;
 
   // Show app
   $('login-screen').style.display = 'none';
@@ -658,14 +660,8 @@ async function loadAndStart(){
   $('info-name').textContent = participantName;
   $('info-code').textContent = participantCode;
 
-  if(isLocked){
-    $('tb-status').classList.add('locked');
-    $('tb-status-text').textContent = 'Cerrada';
-    $('deadline-card').classList.add('locked');
-    $('deadline-card').innerHTML = '🔒 <strong>Pronósticos cerrados definitivamente.</strong> El plazo terminó el 12 Jun 8:00 PM.';
-  } else {
-    $('deadline-card').innerHTML = '🎁 <strong>Última oportunidad de edición:</strong> hasta el <strong>12 Jun 8:00 PM</strong> Colombia (antes del USA vs Paraguay). Los 3 primeros partidos ya jugados están bloqueados.';
-  }
+  // Banner único y claro: el admin cierra cada partido manualmente
+  $('deadline-card').innerHTML = '⚽ <strong>Polla activa.</strong> Cada partido se cierra individualmente justo antes de que arranque. Los 3 primeros partidos de grupos están bloqueados (ya jugados).';
 
   renderAllMatches();
   renderKO();
@@ -790,9 +786,9 @@ function renderKO(){
     row.addEventListener('click', e => {
       // Don't trigger when clicking on inputs
       if(e.target.tagName === 'INPUT') return;
-      if(isLocked) return;
+      // NOTA: isLocked NO aplica a KO - solo bloqueamos KO con lockedMatches (cierre manual del admin)
       const mid = row.dataset.mid;
-      if(lockedMatches[mid] === true) return; // manual lock from admin
+      if(lockedMatches[mid] === true) return; // cierre manual por admin
       const side = row.dataset.side;
       if(!predictions[mid]) predictions[mid] = {};
       predictions[mid].pickedSide = side;
@@ -808,7 +804,8 @@ function renderKO(){
   cont.querySelectorAll('.ko-score-in').forEach(inp => {
     inp.addEventListener('input', e => {
       const mid = e.target.dataset.mid;
-      if(isLocked || lockedMatches[mid] === true){ e.target.disabled = true; return; }
+      // KO no se bloquea por isLocked (deadline global de grupos), solo por cierre manual
+      if(lockedMatches[mid] === true){ e.target.disabled = true; return; }
       const side = e.target.dataset.side;
       const val = e.target.value.trim();
       if(!predictions[mid]) predictions[mid] = {};
@@ -830,7 +827,7 @@ function renderKO(){
   cont.querySelectorAll('.ko-team-input').forEach(inp => {
     inp.addEventListener('input', e => {
       const mid = e.target.dataset.mid;
-      if(isLocked || lockedMatches[mid] === true){ e.target.disabled = true; return; }
+      if(lockedMatches[mid] === true){ e.target.disabled = true; return; }
       const field = e.target.dataset.field;
       if(!predictions[mid]) predictions[mid] = {};
       predictions[mid][field] = e.target.value;
@@ -1004,26 +1001,55 @@ function updateSaveBar(){
 
 // ── SAVE ──
 window.saveAll = async function(){
+  if(!hasChanges()){
+    toast('ℹ️ No hay cambios para guardar');
+    return;
+  }
   const btn = $('save-btn');
   btn.classList.add('saving');
   btn.disabled = true;
   $('save-btn-text').textContent = 'GUARDANDO...';
+
+  // Snapshot the current state at the moment of save
+  const snapshot = JSON.parse(JSON.stringify(predictions));
+  const totalPicks = Object.keys(snapshot).length;
+  console.log('📤 Guardando', totalPicks, 'pronósticos para', participantName);
+  console.log('   Datos:', JSON.stringify(snapshot));
+
   try {
     await setDoc(doc(db,'pronosticos', String(participantId)), {
-      picks: predictions,
+      picks: snapshot,
       name: participantName,
       code: participantCode,
       updatedAt: new Date().toISOString(),
     });
-    originalPredictions = JSON.parse(JSON.stringify(predictions));
+
+    // VERIFY: read back to confirm save worked
+    const verify = await getDoc(doc(db,'pronosticos', String(participantId)));
+    if(verify.exists()){
+      const savedPicks = verify.data().picks || {};
+      const savedCount = Object.keys(savedPicks).length;
+      console.log('✅ Verificación: Firebase tiene', savedCount, 'pronósticos guardados');
+      if(savedCount !== totalPicks){
+        toast(`⚠️ Atención: enviaste ${totalPicks} pero Firebase guardó ${savedCount}. Recarga para revisar.`, true);
+      } else {
+        toast('✅ ' + totalPicks + ' pronósticos guardados con éxito');
+      }
+    } else {
+      toast('⚠️ Guardado pero no se pudo verificar. Recarga la página.', true);
+    }
+
+    originalPredictions = snapshot;
     btn.classList.remove('saving');
-    toast('✅ Pronósticos guardados con éxito');
     updateSaveBar();
   } catch(e) {
+    console.error('❌ ERROR al guardar:', e);
     btn.classList.remove('saving');
     btn.disabled = false;
     $('save-btn-text').textContent = 'REINTENTAR';
-    toast('❌ Error: ' + e.message, true);
+    const errMsg = e.code ? `[${e.code}] ${e.message}` : e.message;
+    toast('❌ Error: ' + errMsg, true);
+    alert('No se pudo guardar:\n\n' + errMsg + '\n\nTip: toma una captura y envíasela al organizador. Tus cambios siguen en pantalla, intenta tocar GUARDAR de nuevo.');
   }
 };
 
