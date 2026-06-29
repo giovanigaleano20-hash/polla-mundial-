@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🏆 Polla Mundialista 2026 · En Vivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#04040e;font-family:'Barlow',sans-serif;color:#f0f0f0;min-height:100vh;overflow-x:hidden}
+
+/* ── BACKGROUNDS ── */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.09;animation:drift 14s ease-in-out infinite alternate}
+.bg-orb.o1{width:700px;height:700px;background:#F59E0B;top:-200px;left:-200px;animation-delay:0s}
+.bg-orb.o2{width:600px;height:600px;background:#1d4ed8;bottom:-150px;right:-150px;animation-delay:5s}
+.bg-orb.o3{width:400px;height:400px;background:#16a34a;top:30%;left:40%;animation-delay:9s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}100%{transform:translate(60px,50px) scale(1.2)}}
+.bg-grid{position:fixed;inset:0;z-index:0;opacity:.022;
+  background-image:linear-gradient(rgba(255,255,255,.8) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.8) 1px,transparent 1px);
+  background-size:48px 48px}
+
+/* ── READ-ONLY BANNER ── */
+.ro-banner{position:fixed;top:0;left:0;right:0;z-index:300;
+  background:linear-gradient(90deg,#052e16,#14532d,#052e16);
+  border-bottom:1px solid rgba(74,222,128,.35);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:7px 16px;font-size:11px;letter-spacing:1.5px;color:#4ade80;font-weight:700;text-transform:uppercase}
+.ro-dot{width:7px;height:7px;background:#4ade80;border-radius:50%;box-shadow:0 0 10px #4ade80;animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.5)}}
+
+/* ── HEADER ── */
+header{position:relative;z-index:1;text-align:center;padding:54px 20px 30px;
+  border-bottom:1px solid rgba(245,158,11,.12);
+  background:linear-gradient(180deg,rgba(0,0,0,.8) 0%,rgba(4,4,14,.55) 100%);
+  backdrop-filter:blur(22px)}
+
+/* TROPHY SVG */
+.trophy-wrap{display:flex;justify-content:center;margin-bottom:12px}
+.trophy-svg{width:96px;height:96px;filter:drop-shadow(0 0 30px rgba(245,158,11,.6)) drop-shadow(0 4px 12px rgba(0,0,0,.5));
+  animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-.5deg)}50%{transform:translateY(-10px) rotate(.5deg)}}
+
+/* HOST COUNTRIES */
+.hosts{display:flex;justify-content:center;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.host-pill{display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;padding:4px 12px;font-size:12px;color:#888;letter-spacing:.5px;
+  transition:border-color .2s}
+.host-pill:hover{border-color:rgba(245,158,11,.3);color:#ccc}
+
+/* TITLE */
+.wc-badge{display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,#F59E0B,#fbbf24);color:#0a0a0f;
+  font-family:'Bebas Neue',cursive;letter-spacing:4px;font-size:12px;
+  padding:4px 18px;border-radius:20px;margin-bottom:10px;
+  box-shadow:0 0 20px rgba(245,158,11,.4)}
+h1{font-family:'Bebas Neue',cursive;font-size:clamp(28px,6vw,62px);letter-spacing:7px;
+  background:linear-gradient(135deg,#F59E0B 0%,#fde68a 35%,#ffffff 50%,#fde68a 65%,#F59E0B 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.05;margin-bottom:4px}
+.subtitle{font-size:12px;color:#3a3a55;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}
+
+/* DATES */
+.dates-strip{display:inline-flex;align-items:center;gap:8px;
+  background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);
+  border-radius:20px;padding:5px 18px;font-size:12px;color:#F59E0B;
+  letter-spacing:1px;margin-bottom:14px;font-weight:700}
+
+/* LIVE */
+.live-badge{display:inline-flex;align-items:center;gap:7px;
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  color:#f87171;border-radius:20px;padding:4px 14px;
+  font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+.live-dot{width:7px;height:7px;background:#ef4444;border-radius:50%;
+  box-shadow:0 0 8px #ef4444;animation:blink 1s ease-in-out infinite}
+
+/* STATS */
+.stats-row{display:flex;justify-content:center;max-width:520px;margin:0 auto;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;overflow:hidden}
+.stat-box{flex:1;text-align:center;padding:12px 8px;
+  border-right:1px solid rgba(255,255,255,.06)}
+.stat-box:last-child{border-right:none}
+.stat-val{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:1px}
+.stat-lbl{font-size:9px;color:#3a3a55;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.accent{color:#F59E0B}.green{color:#4ade80}
+
+/* ── NAV ── */
+nav{display:flex;justify-content:center;gap:8px;padding:14px 16px;flex-wrap:wrap;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  position:sticky;top:30px;z-index:100;
+  background:rgba(4,4,14,.9);backdrop-filter:blur(14px)}
+.tab-btn{display:flex;align-items:center;gap:6px;padding:8px 18px;
+  border:1px solid rgba(255,255,255,.1);border-radius:30px;background:transparent;
+  color:#444;cursor:pointer;font-size:13px;font-family:'Barlow',sans-serif;font-weight:600;
+  letter-spacing:.5px;transition:all .2s}
+.tab-btn.active{background:#F59E0B;color:#0a0a0f;border-color:#F59E0B;box-shadow:0 0 18px #F59E0B44}
+.tab-btn:hover:not(.active){color:#888;border-color:rgba(255,255,255,.2)}
+
+/* ── MAIN ── */
+main{max-width:820px;margin:0 auto;padding:28px 16px 80px;position:relative;z-index:1}
+.section{display:none}.section.show{display:block}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;gap:16px;padding:60px 20px;text-align:center}
+.spinner{width:44px;height:44px;border:3px solid rgba(245,158,11,.15);
+  border-top-color:#F59E0B;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SEARCH */
+.search-box{width:100%;padding:11px 18px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;color:#f0f0f0;font-size:14px;margin-bottom:14px;
+  font-family:'Barlow',sans-serif;outline:none;transition:border-color .2s}
+.search-box:focus{border-color:rgba(245,158,11,.4)}
+
+/* TABLE */
+.table-wrap{border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.07)}
+.t-head{display:flex;align-items:center;padding:10px 16px;
+  background:rgba(245,158,11,.08);font-size:11px;font-weight:700;
+  letter-spacing:1px;color:#F59E0B;text-transform:uppercase;gap:8px}
+.t-row{display:flex;align-items:center;padding:12px 16px;
+  border-bottom:1px solid rgba(255,255,255,.04);gap:8px;transition:background .15s}
+.t-row:last-child{border-bottom:none}
+.t-row:hover{background:rgba(255,255,255,.04)}
+.status-pill{display:inline-block;font-size:11px;font-weight:700;
+  padding:3px 10px;border-radius:20px;letter-spacing:.5px}
+.sp-paid{background:rgba(22,163,74,.18);color:#4ade80;border:1px solid rgba(74,222,128,.25)}
+.sp-pend{background:rgba(55,65,81,.35);color:#555;border:1px solid rgba(107,114,128,.15)}
+
+/* PODIO */
+.podio{display:flex;align-items:flex-end;justify-content:center;
+  gap:14px;margin-bottom:28px;padding:0 8px}
+.podio-slot{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;max-width:210px}
+.podio-avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:20px;font-weight:900;font-family:'Bebas Neue',cursive}
+.pa1{background:linear-gradient(135deg,#FFD700,#FFA500);
+  box-shadow:0 0 28px #FFD70066,0 0 60px #FFD70022;width:70px;height:70px;font-size:26px;color:#7c2d00}
+.pa2{background:linear-gradient(135deg,#A8A8A8,#E8E8E8);
+  box-shadow:0 0 16px #C0C0C044;color:#1a1a1a}
+.pa3{background:linear-gradient(135deg,#8B5E3C,#CD7F32);
+  box-shadow:0 0 16px #CD7F3244;color:#fff}
+.podio-crown{font-size:20px;line-height:1;margin-bottom:-4px}
+.podio-name{font-size:13px;font-weight:700;text-align:center;
+  max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f0f0f0}
+.podio-pts{font-family:'Bebas Neue',cursive;font-size:22px;color:#F59E0B}
+.podio-bar{width:100%;border-radius:6px 6px 0 0}
+.pb1{background:linear-gradient(180deg,#FFD700,#92400e);height:90px}
+.pb2{background:linear-gradient(180deg,#C0C0C0,#4b5563);height:60px}
+.pb3{background:linear-gradient(180deg,#CD7F32,#78350f);height:38px}
+.podio-rank-lbl{font-size:10px;color:#444;text-transform:uppercase;letter-spacing:1px}
+
+/* PRIZES */
+.prize-card{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;
+  margin-bottom:10px;border-radius:14px;transition:all .2s;position:relative;overflow:hidden}
+.prize-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s;
+  background:linear-gradient(135deg,rgba(245,158,11,.06),transparent)}
+.prize-card:hover::before{opacity:1}
+.prize-1{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2)}
+.prize-2{background:rgba(192,192,192,.05);border:1px solid rgba(192,192,192,.15)}
+.prize-3{background:rgba(205,127,50,.05);border:1px solid rgba(205,127,50,.15)}
+.prize-label{font-size:17px;font-weight:700;margin-bottom:3px}
+.prize-pct{font-size:12px;color:#555}
+.prize-amt{font-family:'Bebas Neue',cursive;font-size:28px;color:#F59E0B;letter-spacing:1px}
+.prize-total-row{display:flex;justify-content:space-between;padding:16px 22px;
+  background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);
+  border-radius:12px;font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:2px;margin-top:10px}
+
+/* SECTION TITLE */
+.section-title{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:3px;
+  color:#F59E0B;margin-bottom:14px;margin-top:24px}
+
+/* SCORE TABLE */
+.score-row{display:flex;align-items:center;gap:12px;padding:11px 16px;
+  border-bottom:1px solid rgba(255,255,255,.04)}
+.score-row:last-child{border-bottom:none}
+.score-icon{font-size:20px;width:30px;text-align:center}
+.score-pts{font-family:'Bebas Neue',cursive;font-size:20px;color:#F59E0B;width:70px;text-align:right}
+
+/* RULES */
+.rules-box{margin-top:18px;background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:20px}
+.rules-list{padding-left:18px;display:flex;flex-direction:column;gap:10px;
+  font-size:14px;line-height:1.7;color:#888}
+
+/* PARTIDO CARDS */
+.partido-grid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.partido-card{flex:1;min-width:180px;border-radius:12px;padding:16px;text-align:center}
+.pc-1{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2)}
+.pc-3{background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.2)}
+.partido-pts{font-family:'Bebas Neue',cursive;font-size:44px;line-height:1}
+.partido-title{font-weight:700;margin:4px 0 6px}
+.partido-desc{font-size:12px;color:#555;margin-bottom:10px}
+.partido-ex{font-size:11px;color:#777;background:rgba(0,0,0,.4);padding:8px 10px;border-radius:8px;line-height:1.5}
+
+/* BOTTOM BAR */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(4,4,14,.96);backdrop-filter:blur(14px);
+  border-top:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;flex-wrap:wrap;gap:8px}
+.last-update{font-size:11px;color:#2a2a44;letter-spacing:.5px}
+.view-only-lbl{display:flex;align-items:center;gap:6px;
+  font-size:11px;color:#2a2a44;font-style:italic}
+
+/* FOOTER */
+footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#1e1e30;
+  letter-spacing:2px;text-transform:uppercase;position:relative;z-index:1}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#04040e}
+::-webkit-scrollbar-thumb{background:#1e1e30;border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="bg-orb o1"></div>
+  <div class="bg-orb o2"></div>
+  <div class="bg-orb o3"></div>
+</div>
+<div class="bg-grid"></div>
+
+<!-- READ-ONLY BANNER -->
+<div class="ro-banner">
+  <div class="ro-dot"></div>
+  Vista participantes &nbsp;·&nbsp; Solo lectura &nbsp;·&nbsp; Tiempo real
+</div>
+
+<!-- ══ HEADER ══ -->
+<header>
+
+  <!-- TROFEO SVG -->
+  <div class="trophy-wrap">
+    <svg class="trophy-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="goldG" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fde68a"/>
+          <stop offset="40%" stop-color="#F59E0B"/>
+          <stop offset="100%" stop-color="#92400e"/>
+        </linearGradient>
+        <linearGradient id="goldG2" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#fde68a"/>
+          <stop offset="100%" stop-color="#b45309"/>
+        </linearGradient>
+        <radialGradient id="globeG" cx="38%" cy="35%" r="62%">
+          <stop offset="0%" stop-color="#bfdbfe"/>
+          <stop offset="100%" stop-color="#1e40af"/>
+        </radialGradient>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="softglow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- ESTRELLAS -->
+      <text x="100" y="18" text-anchor="middle" font-size="13" fill="#fde68a" filter="url(#glow)" opacity=".9">★ ★ ★ ★</text>
+
+      <!-- ASAS -->
+      <path d="M70 78 Q52 76 48 92 Q46 108 62 114 Q70 117 80 115" fill="none" stroke="url(#goldG)" stroke-width="8" stroke-linecap="round"/>
+      <path d="M130 78 Q148 76 152 92 Q154 108 138 114 Q130 117 120 115" fill="none" stroke="url(#goldG)" stroke-width="8" stroke-linecap="round"/>
+
+      <!-- COPA BODY -->
+      <path d="M66 68 Q62 102 72 120 Q82 136 100 138 Q118 136 128 120 Q138 102 134 68 Z" fill="url(#goldG)" filter="url(#glow)"/>
+
+      <!-- GLOBO TERRAQUEO -->
+      <circle cx="100" cy="100" r="26" fill="url(#globeG)" opacity=".92"/>
+      <!-- Líneas meridianos -->
+      <ellipse cx="100" cy="100" rx="10" ry="26" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
+      <ellipse cx="100" cy="100" rx="20" ry="26" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+      <line x1="74" y1="100" x2="126" y2="100" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+      <line x1="76" y1="88" x2="124" y2="88" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+      <line x1="76" y1="112" x2="124" y2="112" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+      <!-- Continentes -->
+      <path d="M86 88 Q91 84 97 86 Q101 90 99 97 Q94 101 89 98 Z" fill="rgba(255,255,255,.35)"/>
+      <path d="M103 85 Q109 83 114 87 Q117 92 114 97 Q109 99 104 96 Q101 91 103 85Z" fill="rgba(255,255,255,.3)"/>
+      <path d="M87 103 Q92 100 97 102 Q100 107 97 111 Q92 112 89 109 Z" fill="rgba(255,255,255,.28)"/>
+      <path d="M105 103 Q109 101 113 104 Q115 108 112 111 Q108 112 105 109 Z" fill="rgba(255,158,11,.4)"/>
+
+      <!-- HIGHLIGHT copa -->
+      <path d="M75 72 Q72 85 74 98" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="4" stroke-linecap="round"/>
+
+      <!-- CUELLO -->
+      <rect x="90" y="136" width="20" height="22" rx="5" fill="url(#goldG)"/>
+
+      <!-- BASE -->
+      <rect x="76" y="156" width="48" height="12" rx="5" fill="url(#goldG2)" filter="url(#softglow)"/>
+      <rect x="70" y="166" width="60" height="10" rx="4" fill="url(#goldG2)" filter="url(#softglow)"/>
+
+      <!-- 2026 -->
+      <text x="100" y="198" text-anchor="middle" font-family="'Bebas Neue',cursive"
+        font-size="26" fill="url(#goldG)" letter-spacing="6" filter="url(#softglow)">2026</text>
+    </svg>
+  </div>
+
+  <!-- PAÍSES SEDE -->
+  <div class="hosts">
+    <div class="host-pill">🇺🇸 Estados Unidos</div>
+    <div class="host-pill">🇨🇦 Canadá</div>
+    <div class="host-pill">🇲🇽 México</div>
+  </div>
+
+  <div class="wc-badge">⚽ FIFA WORLD CUP 2026</div>
+  <h1>POLLA MUNDIALISTA</h1>
+  <p class="subtitle">Seguimiento en tiempo real · 48 selecciones · 104 partidos</p>
+  <div class="dates-strip">📅 &nbsp;11 Jun – 19 Jul &nbsp;·&nbsp; 2026</div><br/>
+  <div class="live-badge"><div class="live-dot"></div>&nbsp;En Vivo</div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-val" id="st-cupos">—</div>
+      <div class="stat-lbl">Cupos</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val green" id="st-premios">—</div>
+      <div class="stat-lbl">En premios</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="st-lider" style="font-size:16px;padding-top:4px">—</div>
+      <div class="stat-lbl">Líder</div>
+    </div>
+  </div>
+</header>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <button class="tab-btn active" onclick="showTab('tabla',this)">🏆 Tabla</button>
+  <button class="tab-btn" onclick="showTab('podio',this)">🎖️ Podio</button>
+  <button class="tab-btn" onclick="showTab('pronosticos',this)">🔒 Pronósticos</button>
+  <button class="tab-btn" onclick="showTab('premios',this)">💰 Premios</button>
+  <button class="tab-btn" onclick="showTab('reglas',this)">📋 Reglas</button>
+</nav>
+
+<main>
+
+  <!-- TABLA -->
+  <div id="sec-tabla" class="section show">
+    <input class="search-box" id="search-input" placeholder="🔍  Buscar tu nombre..." oninput="renderTabla()"/>
+    <div class="table-wrap">
+      <div class="t-head">
+        <span style="width:44px">#</span>
+        <span style="flex:1">Participante</span>
+        <span style="width:70px;text-align:center">Pts</span>
+        <span style="width:80px;text-align:center">Estado</span>
+      </div>
+      <div id="tabla-body">
+        <div class="loading">
+          <div class="spinner"></div>
+          <span style="color:#2a2a44;font-size:13px">Conectando con Firebase...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PODIO -->
+  <div id="sec-podio" class="section">
+    <div id="podio-wrap"></div>
+    <div id="top10-wrap"></div>
+  </div>
+
+  <!-- PREMIOS -->
+  <div id="sec-premios" class="section">
+    <p style="text-align:center;font-size:13px;color:#444;margin-bottom:20px;line-height:1.9">
+      Premio total basado en participantes confirmados<br>
+      <strong style="color:#F59E0B;font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:1px" id="premio-lbl">—</strong>
+      &nbsp;en juego actualmente
+    </p>
+    <div id="prizes-list"></div>
+    <div class="prize-total-row">
+      <span>TOTAL EN PREMIOS</span>
+      <span style="color:#F59E0B" id="prize-total">—</span>
+    </div>
+    <p style="font-size:11px;color:#2a2a44;text-align:center;margin-top:10px">
+      Los montos se actualizan conforme se confirman pagos
+    </p>
+  </div>
+
+  <!-- REGLAS -->
+  <div id="sec-reglas" class="section">
+    <div class="section-title">Sistema de Puntuación</div>
+    <div class="table-wrap">
+      <div class="score-row"><span class="score-icon">✅</span><span style="flex:1;color:#ddd;font-size:14px">Predice el ganador del partido</span><span class="score-pts">+1 pt</span></div>
+      <div class="score-row"><span class="score-icon">🎯</span><span style="flex:1;color:#ddd;font-size:14px">Predice ganador <strong style="color:#4ade80">+</strong> resultado exacto</span><span class="score-pts">+3 pts</span></div>
+    </div>
+
+    <div class="rules-box" style="margin-top:16px;border-color:rgba(245,158,11,.2)">
+      <div class="section-title" style="margin-top:0">⚽ Puntuación por Partido</div>
+      <div class="partido-grid">
+        <div class="partido-card pc-1">
+          <div class="partido-pts" style="color:#F59E0B">1</div>
+          <div style="font-family:'Bebas Neue',cursive;font-size:13px;color:#F59E0B;letter-spacing:2px;margin-bottom:6px">PUNTO</div>
+          <div class="partido-title">Acertás el ganador</div>
+          <div class="partido-desc">Predijiste qué equipo gana, pero no el marcador exacto.</div>
+          <div class="partido-ex">Predices <strong>Colombia gana</strong> → Colombia 2-1 Brasil ✅ → <strong style="color:#F59E0B">+1 pt</strong></div>
+        </div>
+        <div class="partido-card pc-3">
+          <div class="partido-pts" style="color:#4ade80">3</div>
+          <div style="font-family:'Bebas Neue',cursive;font-size:13px;color:#4ade80;letter-spacing:2px;margin-bottom:6px">PUNTOS</div>
+          <div class="partido-title">Ganador + resultado exacto</div>
+          <div class="partido-desc">Predijiste el equipo ganador Y el marcador exacto.</div>
+          <div class="partido-ex">Predices <strong>Colombia 2-1</strong> → Colombia 2-1 Brasil ✅ → <strong style="color:#4ade80">+3 pts</strong></div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#333;text-align:center">⚠️ Los 3 pts reemplazan al +1, no se suman. Máximo 3 pts por partido.</p>
+    </div>
+
+    <div class="rules-box">
+      <div class="section-title">📜 Reglas Generales</div>
+      <ul class="rules-list">
+        <li>Cada participante paga <strong style="color:#ccc">$200.000 COP</strong> antes del inicio del torneo.</li>
+        <li>Los pronósticos se entregan <strong style="color:#ccc">antes del partido inaugural</strong>. No se aceptan cambios.</li>
+        <li>Por cada partido: <strong style="color:#F59E0B">+1 pt</strong> si acertás el ganador · <strong style="color:#4ade80">+3 pts</strong> si acertás ganador y resultado exacto.</li>
+        <li>En caso de empate en puntos, gana quien haya acertado más resultados exactos.</li>
+        <li>El organizador retiene el <strong style="color:#ccc">25%</strong> por administración.</li>
+        <li>Los premios se pagan <strong style="color:#ccc">dentro de los 5 días</strong> tras la final del torneo.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PRONÓSTICOS PÚBLICOS -->
+  <div id="sec-pronosticos" class="section">
+    <div id="pron-container"></div>
+  </div>
+
+</main>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <span class="last-update" id="last-update">Conectando...</span>
+  <span class="view-only-lbl">👁️ Solo lectura · Sin permisos de edición</span>
+</div>
+
+<footer>⚽ &nbsp;Polla Mundialista 2026 &nbsp;·&nbsp; Vista Participantes &nbsp;·&nbsp; Tiempo Real</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAPq-PtYroZ5ZRHpJajZLj2ixD0b_IPh3Q",
+  authDomain: "polla-mundial-2026-511f5.firebaseapp.com",
+  projectId: "polla-mundial-2026-511f5",
+  storageBucket: "polla-mundial-2026-511f5.firebasestorage.app",
+  messagingSenderId: "1034229726024",
+  appId: "1:1034229726024:web:d4ceb93a761fe6bfdc917d"
+};
+
+const PRIZES = [
+  {label:"🥇 1er Lugar",  pct:50, cls:'prize-1'},
+  {label:"🥈 2do Lugar",  pct:30, cls:'prize-2'},
+  {label:"🥉 3er Lugar",  pct:20, cls:'prize-3'},
+];
+
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const fmt  = n => '$'+Math.round(n).toLocaleString('es-CO');
+const esc  = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const ini  = p => p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+let players = [];
+let allPredictions = {};   // { participantId: {picks, name, updatedAt} }
+
+// ── REVEAL DATE: Mundial starts June 11 2026 ──
+const REVEAL_DATE = new Date('2026-06-11T00:00:00-05:00');
+
+// ── MATCH LIST for displaying predictions (groups + KO) ──
+const ALL_MATCHES = [
+  [1,'🇲🇽','México','🇿🇦','Sudáfrica'],[2,'🇰🇷','Corea del Sur','🇨🇿','Rep. Checa'],
+  [3,'🇨🇦','Canadá','🇧🇦','Bosnia y Herz.'],[4,'🇺🇸','EE.UU.','🇵🇾','Paraguay'],
+  [5,'🇶🇦','Qatar','🇨🇭','Suiza'],[6,'🇧🇷','Brasil','🇲🇦','Marruecos'],
+  [7,'🇭🇹','Haití','🏴󠁧󠁢󠁳󠁣󠁴󠁿','Escocia'],[8,'🇦🇺','Australia','🇹🇷','Turquía'],
+  [9,'🇩🇪','Alemania','🇨🇼','Curazao'],[10,'🇳🇱','Países Bajos','🇯🇵','Japón'],
+  [11,'🇨🇮','Costa de Marfil','🇪🇨','Ecuador'],[12,'🇸🇪','Suecia','🇹🇳','Túnez'],
+  [13,'🇪🇸','España','🇨🇻','Cabo Verde'],[14,'🇧🇪','Bélgica','🇪🇬','Egipto'],
+  [15,'🇸🇦','Arabia Saudita','🇺🇾','Uruguay'],[16,'🇮🇷','Irán','🇳🇿','Nueva Zelanda'],
+  [17,'🇫🇷','Francia','🇸🇳','Senegal'],[18,'🇮🇶','Irak','🇳🇴','Noruega'],
+  [19,'🇦🇷','Argentina','🇩🇿','Argelia'],[20,'🇦🇹','Austria','🇯🇴','Jordania'],
+  [21,'🇵🇹','Portugal','🇨🇩','R.D. Congo'],[22,'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Inglaterra','🇭🇷','Croacia'],
+  [23,'🇬🇭','Ghana','🇵🇦','Panamá'],[24,'🇺🇿','Uzbekistán','🇨🇴','Colombia'],
+  [25,'🇨🇿','Rep. Checa','🇿🇦','Sudáfrica'],[26,'🇨🇭','Suiza','🇧🇦','Bosnia y Herz.'],
+  [27,'🇨🇦','Canadá','🇶🇦','Qatar'],[28,'🇲🇽','México','🇰🇷','Corea del Sur'],
+  [29,'🇺🇸','EE.UU.','🇦🇺','Australia'],[30,'🏴󠁧󠁢󠁳󠁣󠁴󠁿','Escocia','🇲🇦','Marruecos'],
+  [31,'🇧🇷','Brasil','🇭🇹','Haití'],[32,'🇹🇷','Turquía','🇵🇾','Paraguay'],
+  [33,'🇳🇱','Países Bajos','🇸🇪','Suecia'],[34,'🇩🇪','Alemania','🇨🇮','Costa de Marfil'],
+  [35,'🇪🇨','Ecuador','🇨🇼','Curazao'],[36,'🇹🇳','Túnez','🇯🇵','Japón'],
+  [37,'🇪🇸','España','🇸🇦','Arabia Saudita'],[38,'🇧🇪','Bélgica','🇮🇷','Irán'],
+  [39,'🇺🇾','Uruguay','🇨🇻','Cabo Verde'],[40,'🇳🇿','Nueva Zelanda','🇪🇬','Egipto'],
+  [41,'🇦🇷','Argentina','🇦🇹','Austria'],[42,'🇫🇷','Francia','🇮🇶','Irak'],
+  [43,'🇳🇴','Noruega','🇸🇳','Senegal'],[44,'🇯🇴','Jordania','🇩🇿','Argelia'],
+  [45,'🇵🇹','Portugal','🇺🇿','Uzbekistán'],[46,'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Inglaterra','🇬🇭','Ghana'],
+  [47,'🇵🇦','Panamá','🇭🇷','Croacia'],[48,'🇨🇴','Colombia','🇨🇩','R.D. Congo'],
+  [49,'🇨🇭','Suiza','🇨🇦','Canadá'],[50,'🇧🇦','Bosnia y Herz.','🇶🇦','Qatar'],
+  [51,'🏴󠁧󠁢󠁳󠁣󠁴󠁿','Escocia','🇧🇷','Brasil'],[52,'🇲🇦','Marruecos','🇭🇹','Haití'],
+  [53,'🇨🇿','Rep. Checa','🇲🇽','México'],[54,'🇿🇦','Sudáfrica','🇰🇷','Corea del Sur'],
+  [55,'🇪🇨','Ecuador','🇩🇪','Alemania'],[56,'🇨🇼','Curazao','🇨🇮','Costa de Marfil'],
+  [57,'🇹🇳','Túnez','🇳🇱','Países Bajos'],[58,'🇯🇵','Japón','🇸🇪','Suecia'],
+  [59,'🇹🇷','Turquía','🇺🇸','EE.UU.'],[60,'🇵🇾','Paraguay','🇦🇺','Australia'],
+  [61,'🇳🇴','Noruega','🇫🇷','Francia'],[62,'🇸🇳','Senegal','🇮🇶','Irak'],
+  [63,'🇺🇾','Uruguay','🇪🇸','España'],[64,'🇨🇻','Cabo Verde','🇸🇦','Arabia Saudita'],
+  [65,'🇳🇿','Nueva Zelanda','🇧🇪','Bélgica'],[66,'🇪🇬','Egipto','🇮🇷','Irán'],
+  [67,'🇵🇦','Panamá','🏴󠁧󠁢󠁥󠁮󠁧󠁿','Inglaterra'],[68,'🇭🇷','Croacia','🇬🇭','Ghana'],
+  [69,'🇨🇴','Colombia','🇵🇹','Portugal'],[70,'🇨🇩','R.D. Congo','🇺🇿','Uzbekistán'],
+  [71,'🇯🇴','Jordania','🇦🇷','Argentina'],[72,'🇩🇿','Argelia','🇦🇹','Austria'],
+];
+
+// Listen to all predictions
+onSnapshot(collection(db,'pronosticos'), snap => {
+  allPredictions = {};
+  snap.forEach(d => allPredictions[d.id] = d.data());
+  if(document.getElementById('sec-pronosticos').classList.contains('show')) renderPublicPredictions();
+});
+
+
+onSnapshot(doc(db,'polla','participantes'), snap => {
+  if(snap.exists()){
+    players = snap.data().players || [];
+    renderAll();
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      '🔴 Última actualización: ' +
+      now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  } else {
+    document.getElementById('tabla-body').innerHTML =
+      '<div style="text-align:center;padding:40px;color:#333;font-size:13px">El administrador aún no ha cargado datos.</div>';
+  }
+}, () => {
+  document.getElementById('last-update').textContent = '❌ Sin conexión';
+  document.getElementById('tabla-body').innerHTML =
+    '<div style="text-align:center;padding:40px;color:#f87171;font-size:13px">Error de conexión. Recarga la página.</div>';
+});
+
+function renderAll(){
+  updateHeader(); renderTabla();
+  if(document.getElementById('sec-podio').classList.contains('show'))   renderPodio();
+  if(document.getElementById('sec-premios').classList.contains('show')) renderPremios();
+}
+
+function updateHeader(){
+  const paid   = players.filter(p=>p.paid).length;
+  const rec    = paid * 200000;
+  const sorted = [...players].sort((a,b)=>b.pts-a.pts);
+  const lider  = sorted[0];
+  document.getElementById('st-cupos').textContent    = paid + '/30';
+  document.getElementById('st-premios').textContent  = fmt(rec * .75);
+  document.getElementById('st-lider').textContent    = lider && lider.pts > 0
+    ? lider.name.split(' ').slice(0,2).join(' ') : '—';
+}
+
+function renderTabla(){
+  const q      = (document.getElementById('search-input').value||'').toLowerCase();
+  const sorted = [...players].sort((a,b)=>b.pts-a.pts);
+  const list   = sorted.filter(p=>p.name.toLowerCase().includes(q));
+  const body   = document.getElementById('tabla-body');
+  body.innerHTML = '';
+
+  list.forEach(p => {
+    const rank = sorted.indexOf(p) + 1;
+    const icon = rank<=3 ? ['🥇','🥈','🥉'][rank-1] : rank;
+    let bc='transparent', bg='rgba(255,255,255,.015)', glow='none', rc='#333';
+    if(rank===1){bc='#FFD700';bg='rgba(255,215,0,.055)';glow='0 0 18px #FFD70020';rc='#FFD700'}
+    if(rank===2){bc='#C0C0C0';bg='rgba(192,192,192,.04)';rc='#C0C0C0'}
+    if(rank===3){bc='#CD7F32';bg='rgba(205,127,50,.045)';rc='#CD7F32'}
+    const row = document.createElement('div');
+    row.className = 't-row';
+    row.style.cssText = `box-shadow:${glow};border-left:4px solid ${bc};background:${bg}`;
+    row.innerHTML = `
+      <span style="width:44px;font-family:'Bebas Neue',cursive;font-size:20px;color:${rc}">${icon}</span>
+      <span style="flex:1;font-weight:${rank<=3?700:400};color:#f0f0f0">${esc(p.name)}</span>
+      <span style="width:70px;text-align:center;font-family:'Bebas Neue',cursive;font-size:22px;color:#F59E0B">${p.pts}</span>
+      <span style="width:80px;text-align:center">
+        <span class="status-pill ${p.paid?'sp-paid':'sp-pend'}">${p.paid?'✓ Pagó':'Pend.'}</span>
+      </span>`;
+    body.appendChild(row);
+  });
+}
+
+function renderPodio(){
+  const sorted = [...players].sort((a,b)=>b.pts-a.pts);
+  const t = sorted.slice(0,3);
+  const order = [
+    {p:t[1], ac:'pa2', bc:'pb2', pos:'2do', crown:'🥈'},
+    {p:t[0], ac:'pa1', bc:'pb1', pos:'1ro', crown:'👑'},
+    {p:t[2], ac:'pa3', bc:'pb3', pos:'3ro', crown:'🥉'},
+  ];
+  document.getElementById('podio-wrap').innerHTML = `
+    <div class="section-title" style="text-align:center;margin-top:0">🎖️ Podio Actual</div>
+    <div class="podio">
+      ${order.map(({p,ac,bc,pos,crown}) => p ? `
+        <div class="podio-slot">
+          <div class="podio-crown">${crown}</div>
+          <div class="podio-avatar ${ac}">${ini(p)}</div>
+          <div class="podio-name">${esc(p.name)}</div>
+          <div class="podio-pts">${p.pts} pts</div>
+          <div class="podio-bar ${bc}"></div>
+          <div class="podio-rank-lbl">${pos} lugar</div>
+        </div>`
+      : '<div class="podio-slot"><div style="color:#1a1a2e;font-size:12px;padding:24px 0">—</div></div>'
+      ).join('')}
+    </div>`;
+
+  const rest = sorted.slice(3, 10);
+  if(!rest.length){ document.getElementById('top10-wrap').innerHTML=''; return; }
+  document.getElementById('top10-wrap').innerHTML = `
+    <div class="section-title">Posiciones 4 – ${Math.min(10,sorted.length)}</div>
+    <div class="table-wrap">
+      ${rest.map((p,i) => `
+        <div class="t-row" style="border-left:4px solid rgba(255,255,255,.04);background:rgba(255,255,255,.015)">
+          <span style="width:44px;font-family:'Bebas Neue',cursive;font-size:20px;color:#2a2a44">${i+4}</span>
+          <span style="flex:1;color:#aaa">${esc(p.name)}</span>
+          <span style="width:70px;text-align:center;font-family:'Bebas Neue',cursive;font-size:22px;color:#F59E0B">${p.pts}</span>
+          <span style="width:80px;text-align:center"><span class="status-pill ${p.paid?'sp-paid':'sp-pend'}">${p.paid?'✓':'Pend.'}</span></span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderPremios(){
+  const paid       = players.filter(p=>p.paid).length;
+  const premioTotal = paid * 200000 * .75;
+  document.getElementById('premio-lbl').textContent  = fmt(premioTotal);
+  document.getElementById('prize-total').textContent = fmt(premioTotal);
+  const list = document.getElementById('prizes-list');
+  list.innerHTML = '';
+  PRIZES.forEach(pr => {
+    const card = document.createElement('div');
+    card.className = `prize-card ${pr.cls}`;
+    card.innerHTML = `
+      <div>
+        <div class="prize-label">${pr.label}</div>
+        <div class="prize-pct">${pr.pct}% del total en premios</div>
+      </div>
+      <div class="prize-amt">${fmt(premioTotal * pr.pct / 100)}</div>`;
+    list.appendChild(card);
+  });
+}
+
+window.showTab = (id, btn) => {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('show'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('show');
+  btn.classList.add('active');
+  if(id==='podio')   renderPodio();
+  if(id==='premios') renderPremios();
+  if(id==='pronosticos') renderPublicPredictions();
+};
+
+// ── PUBLIC PREDICTIONS (transparency) ──
+function renderPublicPredictions(){
+  const cont = document.getElementById('pron-container');
+
+  // Show all predictions (always public for transparency)
+  const sorted = [...players].sort((a,b)=>(b.pts||0)-(a.pts||0));
+  let html = `
+    <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.25);border-radius:12px;
+         padding:14px 16px;margin-bottom:18px;font-size:12px;color:#86efac;line-height:1.6">
+      🔓 <strong>Pronósticos públicos.</strong> Estos son los pronósticos guardados por cada participante.
+      La fecha y hora del último guardado queda visible para garantizar que nadie modificó nada después del cierre.
+    </div>
+    </div>
+    <input id="pron-search" placeholder="🔍  Buscar participante..." oninput="filterPronList(this.value)"
+       style="width:100%;padding:11px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+       border-radius:10px;color:#f0f0f0;font-size:14px;margin-bottom:14px;font-family:'Barlow',sans-serif;outline:none"/>
+    <div id="pron-list">`;
+
+  sorted.forEach(player => {
+    const pred = allPredictions[String(player.id)];
+    const picks = pred ? (pred.picks||{}) : {};
+    const filled = Object.values(picks).filter(p => p && ((p.h!==undefined&&p.a!==undefined)||(p.score1!==undefined&&p.score2!==undefined))).length;
+    let ts = '';
+    if(pred && pred.updatedAt){
+      const d = new Date(pred.updatedAt);
+      ts = d.toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    }
+    const initials = (player.name.match(/\b\w/g)||['?']).slice(0,2).join('').toUpperCase();
+
+    html += `
+      <div class="pron-player" data-name="${esc(player.name).toLowerCase()}"
+           style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;margin-bottom:10px;overflow:hidden">
+        <div onclick="togglePron('${player.id}')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#fbbf24);
+               display:flex;align-items:center;justify-content:center;color:#0a0a0f;font-family:'Bebas Neue',cursive;
+               font-size:15px;flex-shrink:0">${initials}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700;color:#f0f0f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(player.name)}</div>
+            <div style="font-size:11px;color:#666">${filled} pronósticos ${ts?'· guardado '+ts:''}</div>
+          </div>
+          <span id="arrow-${player.id}" style="color:#F59E0B;font-size:14px;transition:transform .2s">▼</span>
+        </div>
+        <div id="picks-${player.id}" style="display:none;padding:0 16px 14px"></div>
+      </div>`;
+  });
+  html += '</div>';
+  cont.innerHTML = html;
+}
+
+window.togglePron = function(pid){
+  const box = document.getElementById('picks-'+pid);
+  const arrow = document.getElementById('arrow-'+pid);
+  if(box.style.display === 'none'){
+    // Render picks lazily
+    const pred = allPredictions[String(pid)];
+    const picks = pred ? (pred.picks||{}) : {};
+    let inner = '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;display:grid;gap:4px">';
+    if(Object.keys(picks).length === 0){
+      inner += '<div style="text-align:center;color:#666;font-size:12px;padding:10px">Sin pronósticos registrados</div>';
+    } else {
+      ALL_MATCHES.forEach(m => {
+        const [num,fl1,n1,fl2,n2] = m;
+        const p = picks[num];
+        if(!p || p.h===undefined || p.a===undefined) return;
+        inner += `
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;background:rgba(0,0,0,.2);border-radius:6px">
+            <span style="color:#555;width:22px">${num}</span>
+            <span style="flex:1;text-align:right;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n1} ${fl1}</span>
+            <span style="background:rgba(245,158,11,.15);color:#F59E0B;padding:1px 7px;border-radius:5px;font-weight:700;font-family:'Bebas Neue',cursive;letter-spacing:1px">${p.h} - ${p.a}</span>
+            <span style="flex:1;text-align:left;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fl2} ${n2}</span>
+          </div>`;
+      });
+      // KO predictions
+      const koPicks = Object.keys(picks).filter(k => parseInt(k) > 72);
+      if(koPicks.length){
+        inner += '<div style="margin-top:8px;font-size:10px;color:#F59E0B;letter-spacing:1px;text-transform:uppercase;font-weight:700;padding:4px 8px">🏆 Eliminatorias</div>';
+        koPicks.sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
+          const p = picks[num];
+          if(!p || !p.pickedSide || p.score1===undefined) return;
+          const t1 = p.team1Name || ('Equipo 1');
+          const t2 = p.team2Name || ('Equipo 2');
+          const winner = p.pickedSide === '1' ? t1 : t2;
+          inner += `
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;background:rgba(251,191,36,.06);border-radius:6px">
+              <span style="color:#555;width:28px">M${num}</span>
+              <span style="flex:1;text-align:right;color:#ddd">${esc(t1)}</span>
+              <span style="background:rgba(245,158,11,.15);color:#F59E0B;padding:1px 7px;border-radius:5px;font-weight:700;font-family:'Bebas Neue',cursive">${p.score1} - ${p.score2}</span>
+              <span style="flex:1;text-align:left;color:#ddd">${esc(t2)}</span>
+              <span style="font-size:9px;color:#4ade80;white-space:nowrap">✓ ${esc(winner)}</span>
+            </div>`;
+        });
+      }
+    }
+    inner += '</div>';
+    box.innerHTML = inner;
+    box.style.display = 'block';
+    arrow.style.transform = 'rotate(180deg)';
+  } else {
+    box.style.display = 'none';
+    arrow.style.transform = 'rotate(0deg)';
+  }
+};
+
+window.filterPronList = function(q){
+  q = q.toLowerCase();
+  document.querySelectorAll('.pron-player').forEach(el => {
+    el.style.display = el.dataset.name.includes(q) ? 'block' : 'none';
+  });
+};
+</script>
+</body>
+</html>
