@@ -346,6 +346,7 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
     <button class="tab" onclick="showTab('j2',this)">📅 J2</button>
     <button class="tab" onclick="showTab('j3',this)">📅 J3</button>
     <button class="tab" onclick="showTab('ko',this)">🏆 Eliminatorias</button>
+    <button class="tab" onclick="showTab('otros',this)">👥 Pronósticos</button>
     <button class="tab" onclick="showTab('info',this)">ℹ️ Info</button>
   </div>
 
@@ -354,6 +355,14 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
     <div id="sec-j2" class="section"></div>
     <div id="sec-j3" class="section"></div>
     <div id="sec-ko" class="section"></div>
+    <div id="sec-otros" class="section">
+      <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#86efac;line-height:1.6">
+        🔓 <strong>Transparencia.</strong> Aquí ves los pronósticos de eliminatorias de los demás participantes. Cada partido se revela cuando el organizador lo cierra (antes de eso permanece sellado para evitar copias).
+      </div>
+      <input id="otros-search" placeholder="🔍  Buscar participante..." oninput="filterOtros(this.value)"
+        style="width:100%;padding:11px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#f0f0f0;font-size:14px;margin-bottom:14px;outline:none"/>
+      <div id="otros-list" style="display:grid;gap:8px"></div>
+    </div>
     <div id="sec-info" class="section">
       <div class="info-card">
         <div class="info-card-title">📋 Tu información</div>
@@ -394,7 +403,7 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 100px}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAPq-PtYroZ5ZRHpJajZLj2ixD0b_IPh3Q",
@@ -684,6 +693,10 @@ function listenPhases(){
       } else {
         // Has pending edits: just apply lock states by disabling inputs directly
         applyLocksWithoutRerender();
+      }
+      // Refresh "otros" tab if it's open (newly closed matches now reveal their picks)
+      if($('sec-otros') && $('sec-otros').classList.contains('show') && otrosCargados){
+        renderOtros(otrosCargados);
       }
     }
   });
@@ -1131,6 +1144,95 @@ window.showTab = function(id, btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   $('sec-'+id).classList.add('show');
   btn.classList.add('active');
+  if(id === 'otros') loadOtrosPronosticos();
+};
+
+// ── PRONÓSTICOS DE LOS DEMÁS (transparencia) ──
+const KO_TEAMS_P = {
+  73:['🇿🇦 Sudáfrica','🇨🇦 Canadá'], 74:['🇧🇷 Brasil','🇯🇵 Japón'],
+  75:['🇩🇪 Alemania','🇵🇾 Paraguay'], 76:['🇳🇱 Países Bajos','🇲🇦 Marruecos'],
+  77:['🇨🇮 Costa de Marfil','🇳🇴 Noruega'], 78:['🇫🇷 Francia','🇸🇪 Suecia'],
+  79:['🇲🇽 México','🇪🇨 Ecuador'], 80:['🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra','🇨🇩 R.D. Congo'],
+  81:['🇧🇪 Bélgica','🇸🇳 Senegal'], 82:['🇺🇸 EE.UU.','🇧🇦 Bosnia y Herz.'],
+  83:['🇵🇹 Portugal','🇭🇷 Croacia'], 84:['🇪🇸 España','🇦🇹 Austria'],
+  85:['🇨🇭 Suiza','🇩🇿 Argelia'], 86:['🇦🇺 Australia','🇪🇬 Egipto'],
+  87:['🇦🇷 Argentina','🇨🇻 Cabo Verde'], 88:['🇨🇴 Colombia','🇬🇭 Ghana'],
+};
+
+let otrosCargados = null; // cache
+
+async function loadOtrosPronosticos(){
+  const cont = $('otros-list');
+  if(otrosCargados){ renderOtros(otrosCargados); return; }
+  cont.innerHTML = '<div style="text-align:center;color:#666;padding:30px;font-size:13px">Cargando pronósticos...</div>';
+  try {
+    const snap = await getDocs(collection(db,'pronosticos'));
+    const all = [];
+    snap.forEach(d => { const data = d.data(); all.push({ id:d.id, name:data.name||('Participante '+d.id), picks:data.picks||{} }); });
+    all.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    otrosCargados = all;
+    renderOtros(all);
+  } catch(e){
+    cont.innerHTML = '<div style="text-align:center;color:#f87171;padding:30px;font-size:13px">Error al cargar: '+e.message+'</div>';
+  }
+}
+
+function renderOtros(all){
+  const cont = $('otros-list');
+  if(!all.length){ cont.innerHTML = '<div style="text-align:center;color:#666;padding:30px">Aún no hay pronósticos.</div>'; return; }
+  let html = '';
+  all.forEach(pl => {
+    const koPicks = Object.keys(pl.picks).filter(k => parseInt(k) > 72);
+    let revealed = 0, sealed = 0, rows = '';
+    koPicks.sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
+      const p = pl.picks[num];
+      if(!p || p.score1===undefined || p.score2===undefined) return;
+      const n = parseInt(num);
+      if(lockedMatches[n] !== true){ sealed++; return; }
+      revealed++;
+      const teams = KO_TEAMS_P[n] || ['Equipo 1','Equipo 2'];
+      rows += `<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;background:rgba(251,191,36,.06);border-radius:6px">
+        <span style="color:#555;width:30px">M${num}</span>
+        <span style="flex:1;text-align:right;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${teams[0]}</span>
+        <span style="background:rgba(245,158,11,.15);color:#F59E0B;padding:1px 7px;border-radius:5px;font-weight:700;font-family:'Bebas Neue',cursive">${p.score1} - ${p.score2}</span>
+        <span style="flex:1;text-align:left;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${teams[1]}</span>
+      </div>`;
+    });
+    const initials = (pl.name.match(/\b\w/g)||['?']).slice(0,2).join('').toUpperCase();
+    html += `<div class="otros-player" data-name="${pl.name.toLowerCase()}" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden">
+      <div onclick="toggleOtros('${pl.id}')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">
+        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#b45309);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#0a0a0f">${initials}</div>
+        <span style="flex:1;font-weight:600;color:#f0f0f0">${pl.name}</span>
+        <span style="font-size:10px;color:#888">${revealed} visible${revealed!==1?'s':''}${sealed>0?' · '+sealed+' 🔒':''}</span>
+        <span id="oarrow-${pl.id}" style="color:#666;transition:transform .2s">▼</span>
+      </div>
+      <div id="opicks-${pl.id}" style="display:none;padding:0 16px 14px">
+        ${revealed>0 ? '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:10px;display:grid;gap:4px">'+rows+'</div>' : ''}
+        ${sealed>0 ? '<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:8px;margin-top:6px;background:rgba(75,85,99,.08);border:1px dashed rgba(75,85,99,.3);border-radius:6px;color:#9ca3af">🔒 '+sealed+' pronóstico'+(sealed!==1?'s':'')+' sellado'+(sealed!==1?'s':'')+' (se revela'+(sealed===1?'':'n')+' al cerrarse cada partido)</div>' : ''}
+        ${revealed===0 && sealed===0 ? '<div style="text-align:center;color:#666;font-size:12px;padding:10px">Sin pronósticos de eliminatorias</div>' : ''}
+      </div>
+    </div>`;
+  });
+  cont.innerHTML = html;
+}
+
+window.toggleOtros = function(pid){
+  const box = $('opicks-'+pid);
+  const arrow = $('oarrow-'+pid);
+  if(box.style.display === 'none'){
+    box.style.display = 'block';
+    arrow.style.transform = 'rotate(180deg)';
+  } else {
+    box.style.display = 'none';
+    arrow.style.transform = 'rotate(0deg)';
+  }
+};
+
+window.filterOtros = function(q){
+  q = q.toLowerCase();
+  document.querySelectorAll('.otros-player').forEach(el => {
+    el.style.display = el.dataset.name.includes(q) ? 'block' : 'none';
+  });
 };
 
 // ── AUTO-LOGIN if code in localStorage ──

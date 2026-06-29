@@ -510,11 +510,39 @@ const ALL_MATCHES = [
   [71,'🇯🇴','Jordania','🇦🇷','Argentina'],[72,'🇩🇿','Argelia','🇦🇹','Austria'],
 ];
 
+// ── KO MATCHES: equipos por número (para mostrar nombres en transparencia) ──
+const KO_TEAMS = {
+  73:['🇿🇦 Sudáfrica','🇨🇦 Canadá'], 74:['🇧🇷 Brasil','🇯🇵 Japón'],
+  75:['🇩🇪 Alemania','🇵🇾 Paraguay'], 76:['🇳🇱 Países Bajos','🇲🇦 Marruecos'],
+  77:['🇨🇮 Costa de Marfil','🇳🇴 Noruega'], 78:['🇫🇷 Francia','🇸🇪 Suecia'],
+  79:['🇲🇽 México','🇪🇨 Ecuador'], 80:['🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra','🇨🇩 R.D. Congo'],
+  81:['🇧🇪 Bélgica','🇸🇳 Senegal'], 82:['🇺🇸 EE.UU.','🇧🇦 Bosnia y Herz.'],
+  83:['🇵🇹 Portugal','🇭🇷 Croacia'], 84:['🇪🇸 España','🇦🇹 Austria'],
+  85:['🇨🇭 Suiza','🇩🇿 Argelia'], 86:['🇦🇺 Australia','🇪🇬 Egipto'],
+  87:['🇦🇷 Argentina','🇨🇻 Cabo Verde'], 88:['🇨🇴 Colombia','🇬🇭 Ghana'],
+};
+
+// Estado de partidos cerrados manualmente por el admin
+// Un pronóstico KO se REVELA públicamente cuando el admin cierra ese partido
+let lockedMatches = {};
+
+function isKORevealed(num){
+  return lockedMatches[num] === true;
+}
+
 // Listen to all predictions
 onSnapshot(collection(db,'pronosticos'), snap => {
   allPredictions = {};
   snap.forEach(d => allPredictions[d.id] = d.data());
   if(document.getElementById('sec-pronosticos').classList.contains('show')) renderPublicPredictions();
+});
+
+// Listen to config (lockedMatches) — revela pronósticos KO al cerrarse cada partido
+onSnapshot(doc(db,'polla','config'), snap => {
+  if(snap.exists()){
+    lockedMatches = snap.data().lockedMatches || {};
+    if(document.getElementById('sec-pronosticos').classList.contains('show')) renderPublicPredictions();
+  }
 });
 
 
@@ -722,16 +750,31 @@ window.togglePron = function(pid){
             <span style="flex:1;text-align:left;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fl2} ${n2}</span>
           </div>`;
       });
-      // KO predictions
+      // KO predictions — solo se revelan cuando el admin cierra el partido
       const koPicks = Object.keys(picks).filter(k => parseInt(k) > 72);
       if(koPicks.length){
         inner += '<div style="margin-top:8px;font-size:10px;color:#F59E0B;letter-spacing:1px;text-transform:uppercase;font-weight:700;padding:4px 8px">🏆 Eliminatorias</div>';
+        let hiddenKO = 0;
         koPicks.sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
           const p = picks[num];
-          if(!p || !p.pickedSide || p.score1===undefined) return;
-          const t1 = p.team1Name || ('Equipo 1');
-          const t2 = p.team2Name || ('Equipo 2');
-          const winner = p.pickedSide === '1' ? t1 : t2;
+          if(!p || p.score1===undefined || p.score2===undefined) return;
+          const n = parseInt(num);
+
+          // Si el partido NO ha sido cerrado por el admin → sellado
+          if(!isKORevealed(n)){
+            hiddenKO++;
+            return;
+          }
+
+          // Nombres de equipos desde la tabla
+          const teams = KO_TEAMS[n] || [p.team1Name||'Equipo 1', p.team2Name||'Equipo 2'];
+          const t1 = teams[0], t2 = teams[1];
+          // Ganador inferido del marcador
+          const s1 = Number(p.score1), s2 = Number(p.score2);
+          let winner = '';
+          if(s1 > s2) winner = t1;
+          else if(s2 > s1) winner = t2;
+          else winner = (p.pickedSide === '2' ? t2 : t1);
           inner += `
             <div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 8px;background:rgba(251,191,36,.06);border-radius:6px">
               <span style="color:#555;width:28px">M${num}</span>
@@ -741,6 +784,11 @@ window.togglePron = function(pid){
               <span style="font-size:9px;color:#4ade80;white-space:nowrap">✓ ${esc(winner)}</span>
             </div>`;
         });
+        if(hiddenKO > 0){
+          inner += `<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:8px;background:rgba(75,85,99,.08);border:1px dashed rgba(75,85,99,.3);border-radius:6px;color:#9ca3af;margin-top:4px">
+            🔒 <strong>${hiddenKO}</strong> pronóstico${hiddenKO!==1?'s':''} de eliminatorias sellado${hiddenKO!==1?'s':''} (se revela${hiddenKO===1?'':'n'} cuando el organizador cierre cada partido)
+          </div>`;
+        }
       }
     }
     inner += '</div>';
