@@ -659,7 +659,10 @@ async function loadAndStart(){
   $('info-code').textContent = participantCode;
 
   if(isLocked){
-    $('deadline-card').innerHTML = '⚽ <strong>Fase de grupos cerrada.</strong> Las <strong>eliminatorias</strong> siguen abiertas: cada partido se cierra individualmente cuando el organizador lo decida.';
+    $('tb-status').classList.add('locked');
+    $('tb-status-text').textContent = 'Cerrada';
+    $('deadline-card').classList.add('locked');
+    $('deadline-card').innerHTML = '🔒 <strong>Pronósticos cerrados definitivamente.</strong> El plazo terminó el 12 Jun 8:00 PM.';
   } else {
     $('deadline-card').innerHTML = '🎁 <strong>Última oportunidad de edición:</strong> hasta el <strong>12 Jun 8:00 PM</strong> Colombia (antes del USA vs Paraguay). Los 3 primeros partidos ya jugados están bloqueados.';
   }
@@ -787,9 +790,9 @@ function renderKO(){
     row.addEventListener('click', e => {
       // Don't trigger when clicking on inputs
       if(e.target.tagName === 'INPUT') return;
-      // NOTA: isLocked NO aplica a KO - solo bloqueamos KO con lockedMatches (cierre manual del admin)
+      if(isLocked) return;
       const mid = row.dataset.mid;
-      if(lockedMatches[mid] === true) return; // cierre manual por admin
+      if(lockedMatches[mid] === true) return; // manual lock from admin
       const side = row.dataset.side;
       if(!predictions[mid]) predictions[mid] = {};
       predictions[mid].pickedSide = side;
@@ -805,8 +808,7 @@ function renderKO(){
   cont.querySelectorAll('.ko-score-in').forEach(inp => {
     inp.addEventListener('input', e => {
       const mid = e.target.dataset.mid;
-      // KO no se bloquea por isLocked (deadline global de grupos), solo por cierre manual
-      if(lockedMatches[mid] === true){ e.target.disabled = true; return; }
+      if(isLocked || lockedMatches[mid] === true){ e.target.disabled = true; return; }
       const side = e.target.dataset.side;
       const val = e.target.value.trim();
       if(!predictions[mid]) predictions[mid] = {};
@@ -828,7 +830,7 @@ function renderKO(){
   cont.querySelectorAll('.ko-team-input').forEach(inp => {
     inp.addEventListener('input', e => {
       const mid = e.target.dataset.mid;
-      if(lockedMatches[mid] === true){ e.target.disabled = true; return; }
+      if(isLocked || lockedMatches[mid] === true){ e.target.disabled = true; return; }
       const field = e.target.dataset.field;
       if(!predictions[mid]) predictions[mid] = {};
       predictions[mid][field] = e.target.value;
