@@ -541,7 +541,12 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#444;
     <p class="prize-note">Activa cada fase cuando termine la anterior. Los participantes recibirán acceso para predecir.<br>
       <strong style="color:#4ade80">Recomendación:</strong> habilita 16avos el 28 Jun en la mañana, Octavos el 4 Jul, etc.</p>
     <div id="fases-lista" style="display:grid;gap:10px"></div>
-    <p class="hint">Al activar una fase, todos los participantes pueden empezar a predecir esa ronda.</p>
+
+    <div class="section-title" style="margin-top:30px">🔒 Cierre manual por partido</div>
+    <p class="prize-note">Cierra cada partido individualmente antes de que arranque. Los participantes ya no podrán editar ese pronóstico.<br>
+      <strong style="color:#f87171">Importante:</strong> ciérralos justo antes del pitazo inicial de cada uno.</p>
+    <div id="partidos-manuales" style="display:grid;gap:8px"></div>
+    <p class="hint">💡 Toca el botón para alternar entre abierto/cerrado. El estado se sincroniza con todos los participantes al instante.</p>
   </div>
 
   <!-- PREMIOS -->
@@ -1318,12 +1323,18 @@ const KO_PHASES_INFO = [
   {id:'F',   name:'GRAN FINAL',             sub:'19 Jul · Nueva York · 1 partido'},
 ];
 let phasesOpen = {'16':false,'8':false,'4':false,'2':false,'3p':false,'F':false};
+let lockedMatches = {}; // { 73: true, 74: false, ... } - manual lock per KO match
 
 import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(fs => {
   fs.onSnapshot(fs.doc(db,'polla','config'), snap => {
     if(snap.exists()){
-      phasesOpen = {...phasesOpen, ...(snap.data().phasesOpen||{})};
-      if(document.getElementById('sec-fases').classList.contains('show')) renderFases();
+      const data = snap.data();
+      phasesOpen = {...phasesOpen, ...(data.phasesOpen||{})};
+      lockedMatches = data.lockedMatches || {};
+      if(document.getElementById('sec-fases').classList.contains('show')){
+        renderFases();
+        renderPartidosManuales();
+      }
     }
   });
 });
@@ -1359,6 +1370,117 @@ window.renderFases = function(){
     `;
     cont.appendChild(card);
   });
+  // Also render per-match manual locks
+  renderPartidosManuales();
+};
+
+// ── KO MATCHES (for manual close UI) ──
+const KO_MATCHES_LIST = [
+  // 16avos
+  {num:73, fecha:'28 Jun', t1:'🇿🇦 Sudáfrica', t2:'🇨🇦 Canadá', phase:'16'},
+  {num:74, fecha:'29 Jun', t1:'🇧🇷 Brasil', t2:'🇯🇵 Japón', phase:'16'},
+  {num:75, fecha:'29 Jun', t1:'🇩🇪 Alemania', t2:'🇵🇾 Paraguay', phase:'16'},
+  {num:76, fecha:'29 Jun', t1:'🇳🇱 Países Bajos', t2:'🇲🇦 Marruecos', phase:'16'},
+  {num:77, fecha:'30 Jun', t1:'🇨🇮 Costa de Marfil', t2:'🇳🇴 Noruega', phase:'16'},
+  {num:78, fecha:'30 Jun', t1:'🇫🇷 Francia', t2:'🇸🇪 Suecia', phase:'16'},
+  {num:79, fecha:'30 Jun', t1:'🇲🇽 México', t2:'🇪🇨 Ecuador', phase:'16'},
+  {num:80, fecha:'1 Jul', t1:'🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra', t2:'🇨🇩 R.D. Congo', phase:'16'},
+  {num:81, fecha:'1 Jul', t1:'🇧🇪 Bélgica', t2:'🇸🇳 Senegal', phase:'16'},
+  {num:82, fecha:'1 Jul', t1:'🇺🇸 EE.UU.', t2:'🇧🇦 Bosnia y Herz.', phase:'16'},
+  {num:83, fecha:'2 Jul', t1:'🇵🇹 Portugal', t2:'🇭🇷 Croacia', phase:'16'},
+  {num:84, fecha:'2 Jul', t1:'🇪🇸 España', t2:'🇦🇹 Austria', phase:'16'},
+  {num:85, fecha:'2 Jul', t1:'🇨🇭 Suiza', t2:'🇩🇿 Argelia', phase:'16'},
+  {num:86, fecha:'3 Jul', t1:'🇦🇺 Australia', t2:'🇪🇬 Egipto', phase:'16'},
+  {num:87, fecha:'3 Jul', t1:'🇦🇷 Argentina', t2:'🇨🇻 Cabo Verde', phase:'16'},
+  {num:88, fecha:'3 Jul', t1:'🇨🇴 Colombia', t2:'🇬🇭 Ghana', phase:'16'},
+  // Octavos a Final - aún no definidos
+  {num:89, fecha:'4 Jul', t1:'Ganador M73', t2:'Ganador M75', phase:'8'},
+  {num:90, fecha:'4 Jul', t1:'Ganador M74', t2:'Ganador M77', phase:'8'},
+  {num:91, fecha:'5 Jul', t1:'Ganador M76', t2:'Ganador M78', phase:'8'},
+  {num:92, fecha:'5 Jul', t1:'Ganador M79', t2:'Ganador M80', phase:'8'},
+  {num:93, fecha:'6 Jul', t1:'Ganador M83', t2:'Ganador M84', phase:'8'},
+  {num:94, fecha:'6 Jul', t1:'Ganador M81', t2:'Ganador M82', phase:'8'},
+  {num:95, fecha:'7 Jul', t1:'Ganador M86', t2:'Ganador M88', phase:'8'},
+  {num:96, fecha:'7 Jul', t1:'Ganador M85', t2:'Ganador M87', phase:'8'},
+  {num:97, fecha:'9 Jul', t1:'Ganador M89', t2:'Ganador M90', phase:'4'},
+  {num:98, fecha:'10 Jul', t1:'Ganador M93', t2:'Ganador M94', phase:'4'},
+  {num:99, fecha:'11 Jul', t1:'Ganador M91', t2:'Ganador M92', phase:'4'},
+  {num:100, fecha:'11 Jul', t1:'Ganador M95', t2:'Ganador M96', phase:'4'},
+  {num:101, fecha:'14 Jul', t1:'Ganador M97', t2:'Ganador M98', phase:'2'},
+  {num:102, fecha:'15 Jul', t1:'Ganador M99', t2:'Ganador M100', phase:'2'},
+  {num:103, fecha:'18 Jul', t1:'Perdedor M101', t2:'Perdedor M102', phase:'3p'},
+  {num:104, fecha:'19 Jul', t1:'Ganador M101', t2:'Ganador M102', phase:'F'},
+];
+
+window.renderPartidosManuales = function(){
+  const cont = document.getElementById('partidos-manuales');
+  if(!cont) return;
+  cont.innerHTML = '';
+
+  // Group by phase
+  const phaseLabels = {'16':'🥉 DIECISEISAVOS','8':'⚽ OCTAVOS','4':'🏟️ CUARTOS','2':'🔥 SEMIFINALES','3p':'🥉 TERCER PUESTO','F':'🏆 FINAL'};
+  let currentPhase = null;
+
+  KO_MATCHES_LIST.forEach(m => {
+    if(m.phase !== currentPhase){
+      currentPhase = m.phase;
+      const hdr = document.createElement('div');
+      hdr.style.cssText = `font-size:11px;color:#F59E0B;font-weight:700;letter-spacing:1.5px;
+        margin:12px 0 4px;padding:6px 12px;background:rgba(245,158,11,.08);
+        border-left:3px solid #F59E0B;border-radius:5px`;
+      hdr.textContent = phaseLabels[m.phase] || m.phase;
+      cont.appendChild(hdr);
+    }
+    const isClosed = lockedMatches[m.num] === true;
+    const card = document.createElement('div');
+    card.style.cssText = `display:flex;align-items:center;gap:10px;padding:10px 14px;
+      background:${isClosed?'rgba(248,113,113,.06)':'rgba(74,222,128,.04)'};
+      border:1px solid ${isClosed?'rgba(248,113,113,.25)':'rgba(74,222,128,.2)'};
+      border-radius:8px`;
+    card.innerHTML = `
+      <span style="font-family:'Bebas Neue',cursive;font-size:14px;color:${isClosed?'#f87171':'#4ade80'};width:36px;text-align:center">M${m.num}</span>
+      <span style="font-size:10px;color:#888;width:50px">${m.fecha}</span>
+      <div style="flex:1;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#ddd;min-width:0;overflow:hidden">
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.t1}</span>
+        <span style="color:#666;font-size:9px">vs</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.t2}</span>
+      </div>
+      <span style="font-size:9px;padding:2px 8px;border-radius:10px;letter-spacing:.5px;font-weight:700;
+        background:${isClosed?'rgba(248,113,113,.15)':'rgba(74,222,128,.15)'};
+        color:${isClosed?'#f87171':'#4ade80'};
+        border:1px solid ${isClosed?'rgba(248,113,113,.3)':'rgba(74,222,128,.3)'};white-space:nowrap">
+        ${isClosed?'🔒 CERRADO':'🟢 ABIERTO'}
+      </span>
+      <button onclick="toggleMatchLock(${m.num})" style="background:${isClosed?'transparent':'#f87171'};
+        color:${isClosed?'#4ade80':'#fff'};
+        border:1px solid ${isClosed?'rgba(74,222,128,.4)':'#f87171'};
+        border-radius:6px;padding:5px 10px;font-family:'Bebas Neue',cursive;font-size:11px;
+        letter-spacing:1px;cursor:pointer;white-space:nowrap">
+        ${isClosed?'🟢 ABRIR':'🔒 CERRAR'}
+      </button>
+    `;
+    cont.appendChild(card);
+  });
+};
+
+window.toggleMatchLock = async function(matchNum){
+  const isClosed = lockedMatches[matchNum] === true;
+  const msg = isClosed
+    ? `¿Reabrir el partido M${matchNum}? Los participantes podrán editar este pronóstico de nuevo.`
+    : `¿Cerrar el partido M${matchNum}? Los participantes ya no podrán editar este pronóstico.`;
+  if(!confirm(msg)) return;
+  const prev = lockedMatches[matchNum];
+  lockedMatches[matchNum] = !isClosed;
+  try {
+    const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(doc(db,'polla','config'), {lockedMatches, updatedAt: new Date().toISOString()}, {merge:true});
+    renderPartidosManuales();
+    showToast(isClosed ? `🟢 Partido M${matchNum} reabierto` : `🔒 Partido M${matchNum} cerrado`);
+  } catch(e){
+    lockedMatches[matchNum] = prev;
+    renderPartidosManuales();
+    showToast('❌ Error: '+e.message, true);
+  }
 };
 
 window.togglePhase = async function(phaseId){
@@ -1384,35 +1506,56 @@ window.togglePhase = async function(phaseId){
 async function recalcularPuntos(){
   await loadPredictions();
   let changed = false;
+  let totalDebug = []; // for debugging
   players = players.map(p => {
     const picks = allPredictions[String(p.id)] || {};
     let pts = 0;
+    let breakdown = [];
     Object.entries(results).forEach(([num, r]) => {
-      if(r.h===undefined || r.a===undefined) return;
+      // Coerce result values to numbers (Firebase may return as strings)
+      const rh = Number(r.h);
+      const ra = Number(r.a);
+      if(isNaN(rh) || isNaN(ra)) return;
       const isKO = parseInt(num) > 72;
-      const pk = picks[num];
+      // Look up pick with both string and number keys to handle type coercion
+      const pk = picks[num] || picks[String(num)] || picks[parseInt(num)];
       if(!pk) return;
 
       if(!isKO){
         // Group match: {h, a}
-        if(pk.h===undefined || pk.a===undefined) return;
-        if(pk.h === r.h && pk.a === r.a){ pts += 3; return; }
-        const pw = pk.h > pk.a ? 'H' : (pk.h < pk.a ? 'A' : 'D');
-        const rw = r.h > r.a ? 'H' : (r.h < r.a ? 'A' : 'D');
-        if(pw === rw) pts += 1;
+        const ph = Number(pk.h);
+        const pa = Number(pk.a);
+        if(isNaN(ph) || isNaN(pa)) return;
+        if(ph === rh && pa === ra){ pts += 3; breakdown.push(`G${num}=+3`); return; }
+        const pw = ph > pa ? 'H' : (ph < pa ? 'A' : 'D');
+        const rw = rh > ra ? 'H' : (rh < ra ? 'A' : 'D');
+        if(pw === rw){ pts += 1; breakdown.push(`G${num}=+1`); }
       } else {
-        // KO match: {pickedSide, score1, score2}
-        if(pk.score1===undefined || pk.score2===undefined || !pk.pickedSide) return;
-        const realWinnerSide = r.h > r.a ? '1' : (r.h < r.a ? '2' : null);
-        if(pk.score1 === r.h && pk.score2 === r.a && pk.pickedSide === realWinnerSide){
-          pts += 3; return;
+        // KO match: {pickedSide: '1'|'2', score1, score2}
+        const s1 = Number(pk.score1);
+        const s2 = Number(pk.score2);
+        if(isNaN(s1) || isNaN(s2) || !pk.pickedSide) return;
+        // Exact score → +3 (regardless of winner side, since at 90' a tie is valid)
+        if(s1 === rh && s2 === ra){
+          pts += 3;
+          breakdown.push(`KO${num}=+3(exacto)`);
+          return;
         }
-        if(pk.pickedSide === realWinnerSide) pts += 1;
+        // Winner side match → +1
+        const realWinnerSide = rh > ra ? '1' : (rh < ra ? '2' : null);
+        if(realWinnerSide && pk.pickedSide === realWinnerSide){
+          pts += 1;
+          breakdown.push(`KO${num}=+1(ganador)`);
+        }
       }
     });
+    if(breakdown.length > 0) totalDebug.push(`${p.name}: ${pts}pts [${breakdown.join(', ')}]`);
     if(p.pts !== pts){ changed = true; return {...p, pts}; }
     return p;
   });
+  if(totalDebug.length > 0){
+    console.log('🧮 Recálculo de puntos:\n' + totalDebug.join('\n'));
+  }
   if(changed){
     saveToFirebase();
     renderTabla();
