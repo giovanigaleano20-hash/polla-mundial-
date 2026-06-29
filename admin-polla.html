@@ -1711,49 +1711,61 @@ window.forzarRecalculo = async function(){
   const koResults = resultKeys.filter(k => parseInt(k) > 72);
   const grpResults = resultKeys.filter(k => parseInt(k) <= 72);
   diag.push(`Resultados ingresados: ${resultKeys.length} total`);
-  diag.push(`  • Grupos: ${grpResults.length} (${grpResults.join(', ')||'ninguno'})`);
-  diag.push(`  • Eliminatorias: ${koResults.length} (${koResults.join(', ')||'ninguno'})`);
+  diag.push(`  Grupos: ${grpResults.length} | Eliminatorias: ${koResults.length}`);
+  if(koResults.length > 0){
+    koResults.forEach(k => diag.push(`    KO M${k} = ${results[k].h}-${results[k].a}`));
+  }
   diag.push('');
 
   // 2. ¿Cuántos participantes tienen pronósticos guardados?
   const predIds = Object.keys(allPredictions);
-  diag.push(`Participantes con pronósticos guardados: ${predIds.length}`);
+  diag.push(`Documentos de pronósticos en Firebase: ${predIds.length}`);
+  diag.push(`IDs: ${predIds.slice(0,10).join(', ')}${predIds.length>10?'...':''}`);
+  diag.push('');
 
-  // 3. Para cada resultado KO, ¿quién tiene pronóstico?
+  // 3. IDs de players
+  diag.push(`IDs de participantes (players): ${players.slice(0,5).map(p=>p.id).join(', ')}...`);
+  diag.push('');
+
+  // 4. Para el primer resultado KO, mostrar datos crudos de los primeros 3 participantes
   if(koResults.length > 0){
-    koResults.forEach(num => {
-      const r = results[num];
-      let conPronostico = 0;
-      predIds.forEach(pid => {
-        const picks = allPredictions[pid] || {};
-        const pk = picks[num] || picks[String(num)];
-        if(pk && pk.pickedSide && pk.score1 !== undefined) conPronostico++;
-      });
-      diag.push(`  KO M${num} (${r.h}-${r.a}): ${conPronostico} participantes con pronóstico`);
+    const num = koResults[0];
+    diag.push(`🔍 Datos crudos para KO M${num}:`);
+    let found = 0;
+    predIds.forEach(pid => {
+      if(found >= 5) return;
+      const picks = allPredictions[pid] || {};
+      const pk = picks[num] || picks[String(num)];
+      if(pk){
+        found++;
+        diag.push(`  doc[${pid}].picks[${num}] = ${JSON.stringify(pk)}`);
+      }
     });
+    if(found === 0){
+      diag.push(`  ⚠️ NINGÚN participante tiene pronóstico guardado para M${num}`);
+      diag.push(`  (Esto significa que los pronósticos KO NO se están guardando)`);
+      // Show what keys DO exist in first prediction doc
+      if(predIds.length > 0){
+        const firstDoc = allPredictions[predIds[0]] || {};
+        const keys = Object.keys(firstDoc);
+        diag.push(`  Ejemplo: doc[${predIds[0]}] tiene claves: ${keys.join(', ')||'(vacío)'}`);
+      }
+    }
   } else {
-    diag.push('⚠️ No hay resultados de eliminatorias ingresados todavía.');
+    diag.push('⚠️ No hay resultados KO ingresados. Ingresa primero un resultado de 16avos.');
   }
   diag.push('');
 
-  // Ahora recalcular
+  // Recalcular
   await recalcularPuntos();
-
   const playersWithPoints = players.filter(p => (p.pts||0) > 0).length;
   const topScore = Math.max(...players.map(p => p.pts||0), 0);
   diag.push(`RESULTADO: ${playersWithPoints}/${players.length} con puntos · líder: ${topScore} pts`);
 
-  // Mostrar los que tienen puntos
-  const conPts = players.filter(p => (p.pts||0) > 0).sort((a,b)=>b.pts-a.pts);
-  if(conPts.length > 0){
-    diag.push('\nParticipantes con puntos:');
-    conPts.slice(0,10).forEach(p => diag.push(`  ${p.name}: ${p.pts} pts`));
-  }
-
   const fullDiag = diag.join('\n');
   console.log(fullDiag);
   alert(fullDiag);
-  showToast(`✅ ${playersWithPoints}/${players.length} con puntos · líder: ${topScore} pts`);
+  showToast(`✅ ${playersWithPoints}/${players.length} con puntos`);
 };
 
 // ── INIT ──
