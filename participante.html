@@ -539,14 +539,14 @@ const KO_PHASES = [
     title: 'OCTAVOS DE FINAL',
     sub: '4 al 7 Jul · 8 partidos',
     matches: [
-      [89,'4 Jul','Houston','Ganador 73','Ganador 75'],
-      [90,'4 Jul','Philadelphia','Ganador 74','Ganador 77'],
-      [91,'5 Jul','Nueva York','Ganador 76','Ganador 78'],
-      [92,'5 Jul','Ciudad de México','Ganador 79','Ganador 80'],
-      [93,'6 Jul','Dallas','Ganador 83','Ganador 84'],
-      [94,'6 Jul','Seattle','Ganador 81','Ganador 82'],
-      [95,'7 Jul','Atlanta','Ganador 86','Ganador 88'],
-      [96,'7 Jul','Vancouver','Ganador 85','Ganador 87'],
+      [89,'4 Jul','Houston','🇨🇦 Canadá','🇲🇦 Marruecos'],
+      [90,'4 Jul','Philadelphia','🇵🇾 Paraguay','🇫🇷 Francia'],
+      [91,'5 Jul','Nueva York','🇧🇷 Brasil','🇳🇴 Noruega'],
+      [92,'5 Jul','Ciudad de México','🇲🇽 México','🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra'],
+      [93,'6 Jul','Dallas','🇵🇹 Portugal','🇪🇸 España'],
+      [94,'6 Jul','Seattle','🇺🇸 EE.UU.','🇧🇪 Bélgica'],
+      [95,'7 Jul','Atlanta','🇦🇷 Argentina','🇪🇬 Egipto'],
+      [96,'7 Jul','Vancouver','🇨🇭 Suiza','🇨🇴 Colombia'],
     ]
   },
   {
@@ -591,6 +591,7 @@ const KO_PHASES = [
 let participantId = null;
 let participantName = null;
 let participantCode = null;
+let allPlayers = [];           // lista completa de participantes (id, name, code) para mostrar nombres
 let predictions = {}; // { matchNum: {h: 2, a: 1} } for groups; { M73: {team:'México', score:2, oppTeam:'Brasil', oppScore:1} } for KO
 let originalPredictions = {};
 let isLocked = false;          // global lock (after 12 jun 8pm)
@@ -620,6 +621,7 @@ window.doLogin = async function(){
     const snap = await getDoc(doc(db,'polla','participantes'));
     if(!snap.exists()){ errEl.textContent='Aún no hay participantes registrados. Contacta al organizador.'; errEl.classList.add('show'); btn.disabled=false; btn.textContent='ENTRAR →'; return; }
     const players = snap.data().players || [];
+    allPlayers = players; // guardar para mostrar nombres en pestaña Pronósticos
     const found = players.find(p => (p.code||'').toUpperCase() === codeInput);
     if(!found){ errEl.textContent='Código no encontrado. Verifica con el organizador.'; errEl.classList.add('show'); btn.disabled=false; btn.textContent='ENTRAR →'; return; }
 
@@ -1157,6 +1159,10 @@ const KO_TEAMS_P = {
   83:['🇵🇹 Portugal','🇭🇷 Croacia'], 84:['🇪🇸 España','🇦🇹 Austria'],
   85:['🇨🇭 Suiza','🇩🇿 Argelia'], 86:['🇦🇺 Australia','🇪🇬 Egipto'],
   87:['🇦🇷 Argentina','🇨🇻 Cabo Verde'], 88:['🇨🇴 Colombia','🇬🇭 Ghana'],
+  89:['🇨🇦 Canadá','🇲🇦 Marruecos'], 90:['🇵🇾 Paraguay','🇫🇷 Francia'],
+  91:['🇧🇷 Brasil','🇳🇴 Noruega'], 92:['🇲🇽 México','🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra'],
+  93:['🇵🇹 Portugal','🇪🇸 España'], 94:['🇺🇸 EE.UU.','🇧🇪 Bélgica'],
+  95:['🇦🇷 Argentina','🇪🇬 Egipto'], 96:['🇨🇭 Suiza','🇨🇴 Colombia'],
 };
 
 let otrosCargados = null; // cache
@@ -1166,9 +1172,23 @@ async function loadOtrosPronosticos(){
   if(otrosCargados){ renderOtros(otrosCargados); return; }
   cont.innerHTML = '<div style="text-align:center;color:#666;padding:30px;font-size:13px">Cargando pronósticos...</div>';
   try {
+    // Asegurar que tenemos la lista de participantes (nombres)
+    if(!allPlayers || allPlayers.length === 0){
+      const psnap = await getDoc(doc(db,'polla','participantes'));
+      if(psnap.exists()) allPlayers = psnap.data().players || [];
+    }
+    // Mapa id → nombre
+    const nameById = {};
+    allPlayers.forEach(pl => { nameById[String(pl.id)] = pl.name; });
+
     const snap = await getDocs(collection(db,'pronosticos'));
     const all = [];
-    snap.forEach(d => { const data = d.data(); all.push({ id:d.id, name:data.name||('Participante '+d.id), picks:data.picks||{} }); });
+    snap.forEach(d => {
+      const data = d.data();
+      // Preferir el nombre de la lista oficial de participantes; si no, el guardado en el doc
+      const nm = nameById[String(d.id)] || data.name || ('Participante '+d.id);
+      all.push({ id:d.id, name:nm, picks:data.picks||{} });
+    });
     all.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
     otrosCargados = all;
     renderOtros(all);

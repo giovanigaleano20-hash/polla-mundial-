@@ -520,6 +520,10 @@ const KO_TEAMS = {
   83:['🇵🇹 Portugal','🇭🇷 Croacia'], 84:['🇪🇸 España','🇦🇹 Austria'],
   85:['🇨🇭 Suiza','🇩🇿 Argelia'], 86:['🇦🇺 Australia','🇪🇬 Egipto'],
   87:['🇦🇷 Argentina','🇨🇻 Cabo Verde'], 88:['🇨🇴 Colombia','🇬🇭 Ghana'],
+  89:['🇨🇦 Canadá','🇲🇦 Marruecos'], 90:['🇵🇾 Paraguay','🇫🇷 Francia'],
+  91:['🇧🇷 Brasil','🇳🇴 Noruega'], 92:['🇲🇽 México','🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra'],
+  93:['🇵🇹 Portugal','🇪🇸 España'], 94:['🇺🇸 EE.UU.','🇧🇪 Bélgica'],
+  95:['🇦🇷 Argentina','🇪🇬 Egipto'], 96:['🇨🇭 Suiza','🇨🇴 Colombia'],
 };
 
 // Estado de partidos cerrados manualmente por el admin
@@ -687,9 +691,8 @@ function renderPublicPredictions(){
   let html = `
     <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.25);border-radius:12px;
          padding:14px 16px;margin-bottom:18px;font-size:12px;color:#86efac;line-height:1.6">
-      🔓 <strong>Pronósticos públicos.</strong> Estos son los pronósticos guardados por cada participante.
-      La fecha y hora del último guardado queda visible para garantizar que nadie modificó nada después del cierre.
-    </div>
+      🔓 <strong>Pronósticos públicos.</strong> Los de fase de grupos están visibles siempre.
+      Los de <strong>eliminatorias</strong> se revelan cuando el organizador cierra cada partido, para evitar copias.
     </div>
     <input id="pron-search" placeholder="🔍  Buscar participante..." oninput="filterPronList(this.value)"
        style="width:100%;padding:11px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
