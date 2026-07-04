@@ -446,6 +446,10 @@ footer{text-align:center;padding:60px 16px 16px;font-size:11px;color:#444;
   <!-- TABLA -->
   <div id="sec-tabla" class="section show">
     <input class="search-box" id="search-input" placeholder="🔍  Buscar participante..." oninput="renderTabla()"/>
+    <div style="margin-bottom:12px">
+      <button class="export-btn" onclick="recuperarNombres()" style="background:#4ade80;color:#0a0a0f;font-weight:700;width:100%">♻️ Recuperar nombres reales de participantes</button>
+      <p class="hint" style="margin-top:6px">Si los nombres se ven como "Participante 1, 2, 3...", toca este botón para restaurarlos desde los pronósticos guardados. Los puntos no se modifican.</p>
+    </div>
     <div class="table-wrap">
       <div class="t-head">
         <span style="width:44px">#</span>
@@ -662,6 +666,7 @@ function defaultPlayers(){
 let players = defaultPlayers();
 let editingId = null;
 let saveTimeout = null;
+let playersLoaded = false; // true una vez que Firebase cargó los participantes reales
 
 const fmt = n => '$'+Math.round(n).toLocaleString('es-CO');
 const escHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -682,7 +687,13 @@ function showToast(msg, err=false){
 }
 
 // ── FIREBASE SAVE ──
-async function saveToFirebase(){
+async function saveToFirebase(opts){
+  const isFirstPush = opts && opts.firstPush;
+  // Seguridad: si aún no cargamos los datos reales y NO es el primer push inicial,
+  // no guardar (evita sobrescribir los nombres reales con "Participante N")
+  if(!playersLoaded && !isFirstPush){
+    return;
+  }
   setSyncStatus('spin','Guardando...');
   try {
     await setDoc(doc(db,'polla','participantes'), { players, updatedAt: new Date().toISOString() });
@@ -708,11 +719,13 @@ onSnapshot(doc(db,'polla','participantes'), snap => {
     const data = snap.data();
     if(data.players && editingId === null && !isRecalcSaving){
       players = data.players;
+      playersLoaded = true; // ya tenemos los nombres reales
       renderAll();
     }
   } else {
-    // First time — push defaults
-    saveToFirebase();
+    // First time — push defaults (permitido porque el documento no existe aún)
+    saveToFirebase({firstPush:true});
+    playersLoaded = true;
   }
   setSyncStatus('ok','Conectado ✓');
 }, err => {
@@ -1634,8 +1647,9 @@ window.togglePhase = async function(phaseId){
 
 async function recalcularPuntos(){
   await loadPredictions();
-  // Guard: don't run if players not loaded yet
+  // Guard: don't run if players not loaded yet (avoids saving generic names)
   if(!players || players.length === 0) return;
+  if(!playersLoaded) return; // esperar a que Firebase cargue los nombres reales
   let changed = false;
   let totalDebug = []; // for debugging
   players = players.map(p => {
@@ -1705,73 +1719,62 @@ async function recalcularPuntos(){
 }
 
 window.forzarRecalculo = async function(){
-  showToast('🔄 Recalculando puntos para todos los participantes...');
+  showToast('🔄 Recalculando puntos...');
   await loadPredictions();
-
-  // DIAGNÓSTICO COMPLETO
-  let diag = [];
-  diag.push('=== DIAGNÓSTICO DE PUNTOS ===\n');
-
-  // 1. ¿Cuántos resultados hay ingresados?
-  const resultKeys = Object.keys(results);
-  const koResults = resultKeys.filter(k => parseInt(k) > 72);
-  const grpResults = resultKeys.filter(k => parseInt(k) <= 72);
-  diag.push(`Resultados ingresados: ${resultKeys.length} total`);
-  diag.push(`  Grupos: ${grpResults.length} | Eliminatorias: ${koResults.length}`);
-  if(koResults.length > 0){
-    koResults.forEach(k => diag.push(`    KO M${k} = ${results[k].h}-${results[k].a}`));
-  }
-  diag.push('');
-
-  // 2. ¿Cuántos participantes tienen pronósticos guardados?
-  const predIds = Object.keys(allPredictions);
-  diag.push(`Documentos de pronósticos en Firebase: ${predIds.length}`);
-  diag.push(`IDs: ${predIds.slice(0,10).join(', ')}${predIds.length>10?'...':''}`);
-  diag.push('');
-
-  // 3. IDs de players
-  diag.push(`IDs de participantes (players): ${players.slice(0,5).map(p=>p.id).join(', ')}...`);
-  diag.push('');
-
-  // 4. Para el primer resultado KO, mostrar datos crudos de los primeros 3 participantes
-  if(koResults.length > 0){
-    const num = koResults[0];
-    diag.push(`🔍 Datos crudos para KO M${num}:`);
-    let found = 0;
-    predIds.forEach(pid => {
-      if(found >= 5) return;
-      const picks = allPredictions[pid] || {};
-      const pk = picks[num] || picks[String(num)];
-      if(pk){
-        found++;
-        diag.push(`  doc[${pid}].picks[${num}] = ${JSON.stringify(pk)}`);
-      }
-    });
-    if(found === 0){
-      diag.push(`  ⚠️ NINGÚN participante tiene pronóstico guardado para M${num}`);
-      diag.push(`  (Esto significa que los pronósticos KO NO se están guardando)`);
-      // Show what keys DO exist in first prediction doc
-      if(predIds.length > 0){
-        const firstDoc = allPredictions[predIds[0]] || {};
-        const keys = Object.keys(firstDoc);
-        diag.push(`  Ejemplo: doc[${predIds[0]}] tiene claves: ${keys.join(', ')||'(vacío)'}`);
-      }
-    }
-  } else {
-    diag.push('⚠️ No hay resultados KO ingresados. Ingresa primero un resultado de 16avos.');
-  }
-  diag.push('');
-
-  // Recalcular
   await recalcularPuntos();
   const playersWithPoints = players.filter(p => (p.pts||0) > 0).length;
   const topScore = Math.max(...players.map(p => p.pts||0), 0);
-  diag.push(`RESULTADO: ${playersWithPoints}/${players.length} con puntos · líder: ${topScore} pts`);
+  showToast(`✅ Puntos actualizados · ${playersWithPoints}/${players.length} con puntos · líder: ${topScore} pts`);
+};
 
-  const fullDiag = diag.join('\n');
-  console.log(fullDiag);
-  alert(fullDiag);
-  showToast(`✅ ${playersWithPoints}/${players.length} con puntos`);
+// ── RECUPERAR NOMBRES desde los documentos de pronósticos ──
+window.recuperarNombres = async function(){
+  showToast('🔍 Buscando nombres guardados...');
+  try {
+    const { collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const snap = await getDocs(collection(db,'pronosticos'));
+    // Mapa id → {name, code} desde los documentos de pronósticos
+    const recovered = {};
+    snap.forEach(d => {
+      const data = d.data();
+      if(data.name && !/^Participante \d+$/.test(data.name)){
+        recovered[String(d.id)] = { name: data.name, code: data.code };
+      }
+    });
+
+    const foundCount = Object.keys(recovered).length;
+    if(foundCount === 0){
+      alert('No se encontraron nombres guardados en los pronósticos.\n\nEsto puede pasar si los participantes entraron con una versión antigua. Los nombres tendrás que reescribirlos manualmente.');
+      return;
+    }
+
+    // Preview de lo que se va a restaurar
+    let preview = `Se encontraron ${foundCount} nombres reales:\n\n`;
+    const sortedIds = Object.keys(recovered).sort((a,b)=>parseInt(a)-parseInt(b));
+    sortedIds.slice(0,30).forEach(id => {
+      preview += `  #${id}: ${recovered[id].name}\n`;
+    });
+    preview += `\n¿Restaurar estos nombres? (Los puntos NO se modifican)`;
+
+    if(!confirm(preview)) return;
+
+    // Aplicar: actualizar name (y code si falta) manteniendo pts y paid
+    players = players.map(p => {
+      const rec = recovered[String(p.id)];
+      if(rec){
+        return { ...p, name: rec.name, code: p.code || rec.code || p.code };
+      }
+      return p;
+    });
+
+    playersLoaded = true; // permitir el guardado
+    await saveToFirebase();
+    renderAll();
+    showToast(`✅ ${foundCount} nombres restaurados correctamente`);
+  } catch(e){
+    alert('Error al recuperar nombres: ' + e.message);
+    showToast('❌ Error: '+e.message, true);
+  }
 };
 
 // ── INIT ──
