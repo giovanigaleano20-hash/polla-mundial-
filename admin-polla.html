@@ -728,8 +728,15 @@ onSnapshot(doc(db,'polla','participantes'), snap => {
     playersLoaded = true;
   }
   setSyncStatus('ok','Conectado ✓');
+  // Actualizar el texto de abajo para que no quede en "Esperando conexión..."
+  const ls = document.getElementById('last-sync');
+  if(ls && ls.textContent.includes('Esperando')){
+    ls.textContent = 'Conectado ✓ · datos sincronizados';
+  }
 }, err => {
   setSyncStatus('err','Sin conexión');
+  const ls = document.getElementById('last-sync');
+  if(ls) ls.textContent = '⚠️ Sin conexión — revisa tu internet';
 });
 
 // ── RENDER ALL ──
